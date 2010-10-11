@@ -13,15 +13,6 @@ Which will place <tt>foocorp.vpn</tt> in <tt>/root</tt>. All of the files that O
 
 Next, you should create <tt>foocorp.config.yaml</tt> in <tt>/root/foocorp.vpn</tt>. It should look something like this:
 
-  :server:
-    :base_ip: 10.10.10.0
-    :user: nouser
-    :group: nogroup
-    :root: /root/openvpn
-    :log: /var/log/openvpn.log
-    :host: foocorp.com
-    :port: 1194
-    
   :key_properties:
     :country: US
     :province: CA
@@ -44,7 +35,7 @@ Now that we have a Certificate Authority, we should create a server certificate:
 
   >> mgr.build_server
 
-This creates <tt>server.key</tt> and <tt>server.crt</tt> in the <tt>foocorp_data</tt> directory. The former is the private key for the server to prove its identity; the latter is the public certificate that clients can use to verify this authenticity.
+This creates <tt>server.key</tt> and <tt>server.crt</tt> in the <tt>foocorp_data</tt> directory. The former is the private key for the server to prove its identity; the latter is the public certificate that clients can use to verify this authenticity. It also creates <tt>ta.key</tt>, which is a private key shared between both the server and clients that provides some additional security. (See the tls-auth section at http://openvpn.net/index.php/open-source/documentation/howto.html for more details.)
 
 Next, we can create our first user:
 
@@ -73,3 +64,22 @@ When Joe leaves the company, we can do:
   => {:user=>"joe", :revoked=>[0, 1], :email=>"joe.bloggs@foocorp.com", :name=>"Joe Bloggs", :modified=>Mon Oct 11 11:32:10 -0700 2010, :active_key=>1}
 
 Which does the same revocation as in <tt>regenerate_user</tt>, but doesn't generate new keys.
+
+== OpenVPN management ==
+
+To get OpenVPN set up, you should go back and edit <tt>foocorp.config.yaml</tt>, and add the following section:
+
+  :server:
+    :base_ip: 10.10.10.0
+    :user: nouser
+    :group: nogroup
+    :root: /root/openvpn
+    :log: /var/log/openvpn.log
+    :host: foocorp.com
+    :port: 1194
+    
+You may want to modify some of the values. Then, head back to irb, and do something like:
+
+  >> puts mgr.config_generator.server
+
+Which will output a config file that you can copy and paste into <tt>openvpn.conf</tt> on your server. You'll want make sure that the following files exist in <tt>/root/openvpn</tt> (or whatever your root directory is): <tt>ca.crt</tt> (so that the server can verify the validity of client certificates), <tt>dh.pem</tt> (for encryption of the connection), <tt>server.crt</tt> (the server's public key), <tt>server.key</tt> (the server's private key), <tt>ta.key</tt> (shared secret between server and clients), and <tt>crl.pem</tt> (so that the server will reject revoked certificates).

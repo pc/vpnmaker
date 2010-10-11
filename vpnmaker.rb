@@ -22,7 +22,7 @@ class HashBinding < Object
 end
 
 module VPNMaker
-  class ConfigFile
+  class ConfigGenerator
     def initialize(mgr)
       @mgr = mgr
     end
@@ -163,6 +163,15 @@ module VPNMaker
       @db.sync
     end
 
+    def set_ta_key(ta)
+      raise "TA key already set" if @db[:ta]
+
+      @db[:ta] = {:modified => Time.now}
+      @db.dump('ta.key', ta)
+      @db.touched!
+      @db.sync
+    end
+
     def set_dh(dh)
       @db[:dh] = {:modified => Time.now}
       @db.dump('dh.pem', dh)
@@ -257,6 +266,8 @@ module VPNMaker
   end
 
   class Manager
+    attr_reader :tracker
+
     def self.vpn_name(dir); dir =~ /(^|\/)([^\/\.]+)\.vpn/ ? $2 : nil; end
 
     def initialize(dir)
@@ -267,7 +278,7 @@ module VPNMaker
     def config; @tracker.config; end
 
     def build_ca; @tracker.builder.build_ca; end
-    def build_server; @tracker.builder.build_server_key; end
+    def build_server; @tracker.builder.build_server_key; @tracker.builder.build_ta_key end
 
     def create_user(user, name, email, pass)
       @tracker.builder.build_key(user, name, email, pass, :add_user)
@@ -300,6 +311,8 @@ module VPNMaker
     def user(user)
       @tracker.user(user)
     end
+
+    def config_generator; ConfigGenerator.new(self); end
   end
   
   class KeyBuilder
@@ -383,6 +396,11 @@ module VPNMaker
       `openssl ca -batch -days 3650 -out #{tmppath('server.crt')} -in #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
 
       @tracker.set_server_key(tmpfile('server.key'), tmpfile('server.crt'), tmpfile('index.txt'), tmpfile('serial'))
+    end
+
+    def build_ta_key
+      `openvpn --genkey --secret #{tmppath('ta.key')}`
+      @tracker.set_ta_key(tmpfile('ta.key'))
     end
 
     def place_file(name)
