@@ -2,7 +2,7 @@
 
 VPNMaker takes the teetering jankiness out of setting up and administering OpenVPN VPNs.
 
-== Usage
+== Key management
 
 To set up your VPN, run:
 
@@ -31,16 +31,16 @@ Next, you should create <tt>foocorp.config.yaml</tt> in <tt>/root/foocorp.vpn</t
 
 The values in <tt>foocorp.config.yaml</tt> will be used to generate keys and OpenVPN configuration files.
 
-Administration tasks are carried out with <tt>VPNMaker::Manager</tt>:
+Administration tasks are carried out with <tt>VPNMaker::Manager</tt>.
 
-Creating the Certificate Authority is the first order of business. You'll want to keep its keys safe etc.
+Creating the Certificate Authority is the first order of business. You'll want to keep its keys safe from both intruders and data loss.
 
   >> mgr = VPNMaker::Manager.new('/root/foocorp.vpn')
   >> mgr.build_ca
 
-Specifically, this will create <tt>ca.crt</tt>, <tt>ca.key</tt>, <tt>crl.pem</tt>, <tt>dh.pem</tt>, <tt>index.txt</tt> and <tt>serial</tt> in the <tt>foocorp_data</tt> directory. Respectively these are: the public certificate for the CA that every user should get; the private key for signing other certs that should be kept safe; a certificate revocation file you'll need to revoke signed certificates (e.g. after a laptop is compromised); an encryption key for the server side of the VPN connection; a file for OpenSSL to track key state that you should never need to touch, and another file that OpenSSL uses for tracking key IDs that you shouldn't have to worry about.
+Behind the scenes, this will create <tt>ca.crt</tt>, <tt>ca.key</tt>, <tt>crl.pem</tt>, <tt>dh.pem</tt>, <tt>index.txt</tt> and <tt>serial</tt> in the <tt>foocorp_data</tt> directory. Respectively these are: the public certificate for the CA that every user should get; the private key for signing other certs that should be kept safe; a certificate revocation file you'll need to revoke signed certificates (e.g. after a laptop is compromised); an encryption key for the server side of the VPN connection; a file for OpenSSL to track key state that you should never need to touch; and another file that OpenSSL uses for tracking key IDs that you shouldn't have to worry about.
 
-Next, we can create our first user:
+Now that we have a Certificate Authority, we can create our first user:
 
   >> mgr.create_user('joe', 'Joe Bloggs', 'joe.bloggs@foocorp.com', 'password')
   >> mgr.users
@@ -50,11 +50,11 @@ Next, we can create our first user:
 
 The most important thing to note here is that Joe Bloggs has no revoked keys, and that his active key is version 0. We can go ahead and give <tt>joe-0.key</tt> and <tt>joe-0.crt</tt> to Joe. (They'll be in the <tt>foocorp_data</tt> directory.)
 
-Now say Joe loses his laptop, and we need to revoke his key:
+Now say Joe loses his laptop. We need to both disable his old key and give him a new one:
 
   >> mgr.regenerate_user('joe', 'newpassword')
 
-This will create new keys for Joe, and update the server's <tt>crl.pem</tt> revocation file. If we look up the database, we see that his <tt>active_key</tt> is now <tt>1</tt>, and <tt>0</tt> has been added to the list of revoked keys:
+This will create new keys for Joe, and update the server's <tt>crl.pem</tt> revocation file. If we check the database, we see that his <tt>active_key</tt> is now <tt>1</tt>, while <tt>0</tt> has been added to the list of revoked keys:
 
   >> mgr.user('joe')
   => {:user=>"joe", :revoked=>[0], :email=>"joe.bloggs@foocorp.com", :name=>"Joe Bloggs", :modified=>Mon Oct 11 10:42:44 -0700 2010, :active_key=>1}
@@ -66,4 +66,4 @@ When Joe leaves the company, we can do:
   >> mgr.user('joe')
   => {:user=>"joe", :revoked=>[0, 1], :email=>"joe.bloggs@foocorp.com", :name=>"Joe Bloggs", :modified=>Mon Oct 11 11:32:10 -0700 2010, :active_key=>1}
 
-Which does the same revocation as before, but doesn't generate new keys.
+Which does the same revocation as in <tt>regenerate_user</tt>, but doesn't generate new keys.
