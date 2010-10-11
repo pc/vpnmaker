@@ -1,0 +1,69 @@
+= VPNMaker
+
+VPNMaker takes the teetering jankiness out of setting up and administering OpenVPN VPNs.
+
+== Usage
+
+To set up your VPN, run:
+
+  irb -r vpnmaker
+  >> VPNMaker.generate('foocorp', '/root')
+
+Which will place <tt>foocorp.vpn</tt> in <tt>/root</tt>. All of the files that OpenVPN needs will be placed in <tt>/root/foocorp.vpn/foocorp_data</tt>.
+
+Next, you should create <tt>foocorp.config.yaml</tt> in <tt>/root/foocorp.vpn</tt>. It should look something like this:
+
+  :server:
+    :base_ip: 10.10.10.0
+    :user: nouser
+    :group: nogroup
+    :root: /root/openvpn
+    :log: /var/log/openvpn.log
+    :host: foocorp.com
+    :port: 1194
+    
+  :key_properties:
+    :country: US
+    :province: CA
+    :city: San Francisco
+    :organization: FooCorp Inc
+    :email: security@foocorp.com
+
+The values in <tt>foocorp.config.yaml</tt> will be used to generate keys and OpenVPN configuration files.
+
+Administration tasks are carried out with <tt>VPNMaker::Manager</tt>:
+
+Creating the Certificate Authority is the first order of business. You'll want to keep its keys safe etc.
+
+  >> mgr = VPNMaker::Manager.new('/root/foocorp.vpn')
+  >> mgr.build_ca
+
+Specifically, this will create <tt>ca.crt</tt>, <tt>ca.key</tt>, <tt>crl.pem</tt>, <tt>dh.pem</tt>, <tt>index.txt</tt> and <tt>serial</tt> in the <tt>foocorp_data</tt> directory. Respectively these are: the public certificate for the CA that every user should get; the private key for signing other certs that should be kept safe; a certificate revocation file you'll need to revoke signed certificates (e.g. after a laptop is compromised); an encryption key for the server side of the VPN connection; a file for OpenSSL to track key state that you should never need to touch, and another file that OpenSSL uses for tracking key IDs that you shouldn't have to worry about.
+
+Next, we can create our first user:
+
+  >> mgr.create_user('joe', 'Joe Bloggs', 'joe.bloggs@foocorp.com', 'password')
+  >> mgr.users
+  => ['joe']
+  >> mgr.user('joe')
+  => {:user=>"joe", :revoked=>[], :email=>"joe.bloggs@foocorp.com", :name=>"Joe Bloggs", :modified=>Mon Oct 11 10:42:44 -0700 2010, :active_key=>0}
+
+The most important thing to note here is that Joe Bloggs has no revoked keys, and that his active key is version 0. We can go ahead and give <tt>joe-0.key</tt> and <tt>joe-0.crt</tt> to Joe. (They'll be in the <tt>foocorp_data</tt> directory.)
+
+Now say Joe loses his laptop, and we need to revoke his key:
+
+  >> mgr.regenerate_user('joe', 'newpassword')
+
+This will create new keys for Joe, and update the server's <tt>crl.pem</tt> revocation file. If we look up the database, we see that his <tt>active_key</tt> is now <tt>1</tt>, and <tt>0</tt> has been added to the list of revoked keys:
+
+  >> mgr.user('joe')
+  => {:user=>"joe", :revoked=>[0], :email=>"joe.bloggs@foocorp.com", :name=>"Joe Bloggs", :modified=>Mon Oct 11 10:42:44 -0700 2010, :active_key=>1}
+We should now go ahead and distribute <tt>joe-1.key</tt> and <tt>joe-1.crt</tt> to Joe, as well as make sure our OpenVPN servers get the latest version of the <tt>crl.pem</tt> revocation file.
+
+When Joe leaves the company, we can do:
+
+  >> mgr.delete_user('joe')
+  >> mgr.user('joe')
+  => {:user=>"joe", :revoked=>[0, 1], :email=>"joe.bloggs@foocorp.com", :name=>"Joe Bloggs", :modified=>Mon Oct 11 11:32:10 -0700 2010, :active_key=>1}
+
+Which does the same revocation as before, but doesn't generate new keys.
