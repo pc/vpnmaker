@@ -173,6 +173,8 @@ module VPNMaker
     end
 
     def set_dh(dh)
+      raise "DH key already set" if @db[:dh]
+
       @db[:dh] = {:modified => Time.now}
       @db.dump('dh.pem', dh)
       @db.touched!
@@ -278,7 +280,11 @@ module VPNMaker
     def config; @tracker.config; end
 
     def build_ca; @tracker.builder.build_ca; end
-    def build_server; @tracker.builder.build_server_key; @tracker.builder.build_ta_key end
+    def build_server
+      @tracker.builder.build_server_key
+      @tracker.builder.build_ta_key
+      @tracker.builder.build_dh_key
+    end
 
     def create_user(user, name, email, pass)
       @tracker.builder.build_key(user, name, email, pass, :add_user)
@@ -363,7 +369,7 @@ module VPNMaker
     end
     
     # Build Diffie-Hellman parameters for the server side of an SSL/TLS connection.
-    def build_dh(keysize=1024)
+    def build_dh_key(keysize=1024)
       `openssl dhparam -out #{tmppath('dh.pem')} #{keysize}`
       @tracker.set_dh(tmpfile('dh.pem'))
     end

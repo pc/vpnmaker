@@ -35,7 +35,7 @@ Now that we have a Certificate Authority, we should create a server certificate:
 
   >> mgr.build_server
 
-This creates <tt>server.key</tt> and <tt>server.crt</tt> in the <tt>foocorp_data</tt> directory. The former is the private key for the server to prove its identity; the latter is the public certificate that clients can use to verify this authenticity. It also creates <tt>ta.key</tt>, which is a private key shared between both the server and clients that provides some additional security. (See the tls-auth section at http://openvpn.net/index.php/open-source/documentation/howto.html for more details.)
+This creates <tt>server.key</tt> and <tt>server.crt</tt> in the <tt>foocorp_data</tt> directory. The former is the private key for the server to prove its identity; the latter is the public certificate that clients can use to verify this authenticity. It also creates <tt>dh.key</tt> and <tt>ta.key</tt>. The first of these is a key for creating TLS connections on the server; the second is a key shared between both the server and clients that provides some additional security. (See the tls-auth section at http://openvpn.net/index.php/open-source/documentation/howto.html for more details.)
 
 Next, we can create our first user:
 
@@ -65,7 +65,7 @@ When Joe leaves the company, we can do:
 
 Which does the same revocation as in <tt>regenerate_user</tt>, but doesn't generate new keys.
 
-== OpenVPN management ==
+== OpenVPN management
 
 To get OpenVPN set up, you should go back and edit <tt>foocorp.config.yaml</tt>, and add the following section:
 
