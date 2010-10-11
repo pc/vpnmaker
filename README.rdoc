@@ -40,7 +40,13 @@ Creating the Certificate Authority is the first order of business. You'll want t
 
 Behind the scenes, this will create <tt>ca.crt</tt>, <tt>ca.key</tt>, <tt>crl.pem</tt>, <tt>dh.pem</tt>, <tt>index.txt</tt> and <tt>serial</tt> in the <tt>foocorp_data</tt> directory. Respectively these are: the public certificate for the CA that every user should get; the private key for signing other certs that should be kept safe; a certificate revocation file you'll need to revoke signed certificates (e.g. after a laptop is compromised); an encryption key for the server side of the VPN connection; a file for OpenSSL to track key state that you should never need to touch; and another file that OpenSSL uses for tracking key IDs that you shouldn't have to worry about.
 
-Now that we have a Certificate Authority, we can create our first user:
+Now that we have a Certificate Authority, we should create a server certificate:
+
+  >> mgr.build_server
+
+This creates <tt>server.key</tt> and <tt>server.crt</tt> in the <tt>foocorp_data</tt> directory. The former is the private key for the server to prove its identity; the latter is the public certificate that clients can use to verify this authenticity.
+
+Next, we can create our first user:
 
   >> mgr.create_user('joe', 'Joe Bloggs', 'joe.bloggs@foocorp.com', 'password')
   >> mgr.users

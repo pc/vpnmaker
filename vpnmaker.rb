@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'yaml'
 require 'erb'
+require 'socket'
 
 class String
   def path(p)
@@ -22,14 +23,23 @@ end
 
 module VPNMaker
   class ConfigFile
-    def initialize(tracker)
-      @tracker = tracker
+    def initialize(mgr)
+      @mgr = mgr
     end
-    
-    def generate
-      erb = File.read(__FILE__.path('server.erb'))
-      erb.result(HashBinding.from_hash(@tracker.config).binding)
+
+    def server_conf
+      {
+        :gen_host => Socket.gethostname
+      }.merge(@mgr.config[:server])
     end
+
+    def apply_erb(name, cnf)
+      erb = File.read(__FILE__.path(name))
+      ERB.new(erb).result(HashBinding.from_hash(cnf).binding)
+    end
+
+    def server; apply_erb('server.erb', server_conf); end
+    def client; apply_erb('client.erb'); end
   end
   
   class KeyDB
@@ -141,6 +151,18 @@ module VPNMaker
       @db.sync
     end
 
+    def set_server_key(key, crt, index, serial)
+      raise "Server key already set" if @db[:server]
+
+      @db[:server] = {:modified => Time.now}
+      @db.dump('server.key', key)
+      @db.dump('server.crt', crt)
+      @db.dump('index.txt', index, true)
+      @db.dump('serial', serial, true)
+      @db.touched!
+      @db.sync
+    end
+
     def set_dh(dh)
       @db[:dh] = {:modified => Time.now}
       @db.dump('dh.pem', dh)
@@ -242,9 +264,10 @@ module VPNMaker
       @tracker = KeyTracker.new(name, dir)
     end
 
-    def build_ca
-      @tracker.builder.build_ca
-    end
+    def config; @tracker.config; end
+
+    def build_ca; @tracker.builder.build_ca; end
+    def build_server; @tracker.builder.build_server_key; end
 
     def create_user(user, name, email, pass)
       @tracker.builder.build_key(user, name, email, pass, :add_user)
@@ -348,6 +371,18 @@ module VPNMaker
       `openssl req -batch -days 3650 -nodes -new -x509 -keyout #{@tmpdir}/ca.key -out #{@tmpdir}/ca.crt -config #{opensslcnf}`
       gen_crl
       @tracker.set_ca(tmpfile('ca.key'), tmpfile('ca.crt'), tmpfile('crl.pem'), tmpfile('index.txt'), "01\n")
+    end
+
+    def build_server_key
+      place_file('ca.crt')
+      place_file('ca.key')
+      place_file('index.txt')
+      place_file('serial')
+
+      `openssl req -batch -days 3650 -nodes -new -keyout #{tmppath('server.key')} -out #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
+      `openssl ca -batch -days 3650 -out #{tmppath('server.crt')} -in #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
+
+      @tracker.set_server_key(tmpfile('server.key'), tmpfile('server.crt'), tmpfile('index.txt'), tmpfile('serial'))
     end
 
     def place_file(name)
