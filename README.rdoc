@@ -83,3 +83,7 @@ You may want to modify some of the values. Then, head back to irb, and do someth
   >> puts mgr.config_generator.server
 
 Which will output a config file that you can copy and paste into <tt>openvpn.conf</tt> on your server. You'll want make sure that the following files exist in <tt>/root/openvpn</tt> (or whatever your root directory is): <tt>ca.crt</tt> (so that the server can verify the validity of client certificates), <tt>dh.pem</tt> (for encryption of the connection), <tt>server.crt</tt> (the server's public key), <tt>server.key</tt> (the server's private key), <tt>ta.key</tt> (shared secret between server and clients), and <tt>crl.pem</tt> (so that the server will reject revoked certificates).
+
+== OpenVPN client ==
+
+Each client will need: <tt>user.key</tt>, <tt>user.crt</tt>, <tt>ca.crt</tt> and <tt>ta.key</tt>. Make sure to enable tls-auth = 1.
