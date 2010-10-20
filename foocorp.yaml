@@ -1,0 +1,15 @@
+:server:
+  :base_ip: 10.10.10.0
+  :user: nobody
+  :group: nogroup
+  :root: /root/openvpn
+  :log: /var/log/openvpn.log
+  :host: vpn.foocorp.com
+  :port: 1194
+
+:key_properties:
+  :country: US
+  :province: CA
+  :city: San Francisco
+  :organization: FooCorp Inc
+  :email: sec@foocorp.com
