@@ -17,7 +17,7 @@ class HashBinding < Object
     end
     hb
   end
-  
+
   def binding; super; end # normally private
 end
 
@@ -41,14 +41,14 @@ module VPNMaker
     def server; apply_erb('server.erb', server_conf); end
     def client; apply_erb('client.erb'); end
   end
-  
+
   class KeyDB
     def initialize(path)
       @path = path
       @db = File.exists?(path) ? YAML.load_file(path) : {}
       @touched = false
     end
-    
+
     def [](k); @db[k]; end
 
     def []=(k, v)
@@ -61,7 +61,7 @@ module VPNMaker
       @touched = true
       @db[:modified] = Time.now
     end
-    
+
 
     def datadir; self[:datadir]; end
 
@@ -79,11 +79,11 @@ module VPNMaker
     def data(k)
       File.exists?(data_path(k)) ? File.read(data_path(k)) : nil
     end
-    
+
     def disk_version
       File.exists?(@path) ? YAML.load_file(@path)[:version] : 0
     end
-    
+
     def sync
       if disk_version == @db[:version]
         if @touched
@@ -190,7 +190,7 @@ module VPNMaker
       @db.data("#{user}-#{ver}.#{type}")
     end
 
-    def add_user(user, name, email, key, crt, index, serial)
+    def add_user(user, name, email, key, crt, p12, index, serial)
       raise "User must be a non-empty string" unless user.is_a?(String) && user.size > 0
       raise "User already exists: #{user}" if @db[:users][user]
 
@@ -204,18 +204,18 @@ module VPNMaker
       }
       @db.dump('serial', serial, true)
       @db.dump('index.txt', index, true)
-      add_key(user, key, crt, 0)
+      add_key(user, key, crt, p12, 0)
       @db.touched!
       @db.sync
     end
 
-    def add_user_key(user, name, email, key, crt, index, serial)
+    def add_user_key(user, name, email, key, crt, p12, index, serial)
       assert_user(user)
 
       u = @db[:users][user]
       u[:modified] = Time.now
       u[:active_key] += 1
-      add_key(user, key, crt, u[:active_key])
+      add_key(user, key, crt, p12, u[:active_key])
 
       @db.dump('serial', serial, true)
       @db.dump('index.txt', index, true)
@@ -320,7 +320,7 @@ module VPNMaker
 
     def config_generator; ConfigGenerator.new(self); end
   end
-  
+
   class KeyBuilder
     def initialize(tracker, config)
       @tmpdir = '/tmp/keybuilder'
@@ -333,9 +333,9 @@ module VPNMaker
       FileUtils.rm_rf(@tmpdir)
       FileUtils.mkdir_p(@tmpdir)
     end
-    
+
     def cnfpath; "/tmp/openssl-#{$$}.cnf"; end
-    
+
     def opensslvars
       {
         :key_size => 1024,
@@ -351,23 +351,23 @@ module VPNMaker
         :key_name => 'Name'
       }
     end
-    
+
     def init
       `touch #{@dir}/index.txt`
       `echo 01 > #{@dir}/serial`
     end
-    
+
     def opensslcnf(hash={})
       c = cnfpath
-      
+
       File.open(cnfpath, 'w') do |f|
         f.write(ERB.new(File.read(__FILE__.path('openssl.erb'))).\
           result(HashBinding.from_hash(opensslvars.merge(hash)).binding))
       end
-      
+
       c
     end
-    
+
     # Build Diffie-Hellman parameters for the server side of an SSL/TLS connection.
     def build_dh_key(keysize=1024)
       `openssl dhparam -out #{tmppath('dh.pem')} #{keysize}`
@@ -381,12 +381,12 @@ module VPNMaker
     def gen_crl
       `openssl ca -gencrl -crldays 3650 -keyfile #{tmppath('ca.key')} -cert #{tmppath('ca.crt')} -out #{tmppath('crl.pem')} -config #{opensslcnf}`
     end
-    
+
     def build_ca
       index = tmppath('index.txt')
 
       FileUtils.touch(index)
-      
+
       `openssl req -batch -days 3650 -nodes -new -x509 -keyout #{@tmpdir}/ca.key -out #{@tmpdir}/ca.crt -config #{opensslcnf}`
       gen_crl
       @tracker.set_ca(tmpfile('ca.key'), tmpfile('ca.crt'), tmpfile('crl.pem'), tmpfile('index.txt'), "01\n")
@@ -419,7 +419,7 @@ module VPNMaker
 
     def tmppath(f, extn=nil); File.join(@tmpdir, extn ? "#{f}.#{extn}" : f); end
     def tmpfile(*args); File.read(tmppath(*args)); end
-        
+
     def build_key(user, name, email, pass, delegate)
       h = {:key_cn => name, :key_name => name, :key_email => email}
       place_file('ca.crt')
@@ -429,7 +429,8 @@ module VPNMaker
 
       `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} -passin pass:#{pass} -passout pass:#{pass}`
       `openssl ca -batch -days 3650 -out #{tmppath(user, 'crt')} -in #{tmppath(user, 'csr')} -config #{opensslcnf(h)}`
-      @tracker.send(delegate, user, name, email, tmpfile(user, 'key'), tmpfile(user, 'crt'), tmpfile('index.txt'), tmpfile('serial'))
+      `openssl pkcs12 -export -clcerts -in #{tmppath(user, 'crt')} -inkey #{tmppath(user, 'key')} -out #{tmppath(user, 'p12')} -passin pass:#{pass} -passout pass:#{pass}`
+      @tracker.send(delegate, user, name, email, tmpfile(user, 'key'), tmpfile(user, 'crt'), tmpfile(user, 'p12') tmpfile('index.txt'), tmpfile('serial'))
     end
 
     def revoke_key(user, version)
