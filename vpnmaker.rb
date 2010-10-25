@@ -181,9 +181,10 @@ module VPNMaker
       @db.sync
     end
 
-    def add_key(user, key, crt, ver)
+    def add_key(user, key, crt, p12, ver)
       @db.dump("#{user}-#{ver}.key", key)
       @db.dump("#{user}-#{ver}.crt", crt)
+      @db.dump("#{user}-#{ver}.p12", p12)
     end
 
     def key(user, ver, type)
