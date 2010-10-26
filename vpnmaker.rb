@@ -118,7 +118,7 @@ module VPNMaker
 
     def self.generate(name, path=nil)
       path ||= '/tmp'
-      dir = File.join(path, name + '.vpn')
+      dir = File.join(File.expand_path(path), name + '.vpn')
 
       FileUtils.mkdir_p(dir)
       datadir = File.join(dir, "#{name}_data")
@@ -274,8 +274,8 @@ module VPNMaker
     def self.vpn_name(dir); dir =~ /(^|\/)([^\/\.]+)\.vpn/ ? $2 : nil; end
 
     def initialize(dir)
-      name = self.class.vpn_name(dir)
-      @tracker = KeyTracker.new(name, dir)
+      name = self.class.vpn_name(File.expand_path(dir))
+      @tracker = KeyTracker.new(name, File.expand_path(dir))
     end
 
     def config; @tracker.config; end
@@ -428,10 +428,10 @@ module VPNMaker
       place_file('index.txt')
       place_file('serial')
 
-      `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} -passin pass:#{pass} -passout pass:#{pass}`
+      `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} -passin 'pass:#{pass}' -passout 'pass:#{pass}'`
       `openssl ca -batch -days 3650 -out #{tmppath(user, 'crt')} -in #{tmppath(user, 'csr')} -config #{opensslcnf(h)}`
-      `openssl pkcs12 -export -clcerts -in #{tmppath(user, 'crt')} -inkey #{tmppath(user, 'key')} -out #{tmppath(user, 'p12')} -passin pass:#{pass} -passout pass:#{pass}`
-      @tracker.send(delegate, user, name, email, tmpfile(user, 'key'), tmpfile(user, 'crt'), tmpfile(user, 'p12') tmpfile('index.txt'), tmpfile('serial'))
+      `openssl pkcs12 -export -clcerts -in #{tmppath(user, 'crt')} -inkey #{tmppath(user, 'key')} -out #{tmppath(user, 'p12')} -passin 'pass:#{pass}' -passout 'pass:#{pass}'`
+      @tracker.send(delegate, user, name, email, tmpfile(user, 'key'), tmpfile(user, 'crt'), tmpfile(user, 'p12'), tmpfile('index.txt'), tmpfile('serial'))
     end
 
     def revoke_key(user, version)
