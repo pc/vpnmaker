@@ -12,6 +12,5 @@ persist-tun
 cert <%= @user %>-<%= (@revoked.max || -1) + 1 %>.crt
 nobind
 key <%= @user %>-<%= (@revoked.max || -1) + 1 %>.key
-route <%= @client[:subnet] %> 255.255.255.0 vpn_gateway default
 ifconfig <%= @client[:local_endpoint] %> <%= @client[:remote_endpoint] %>
 remote-cert-tls server
