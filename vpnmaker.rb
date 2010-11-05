@@ -287,7 +287,7 @@ module VPNMaker
       @tracker.builder.build_dh_key
     end
 
-    def create_user(user, name, email, pass)
+    def create_user(user, name, email, pass=nil)
       @tracker.builder.build_key(user, name, email, pass, :add_user)
     end
 
@@ -301,7 +301,7 @@ module VPNMaker
       end
     end
 
-    def regenerate_user(user, pass)
+    def regenerate_user(user, pass=nil)
       revoke_all(user)
       u = @tracker.user(user)
       @tracker.builder.build_key(user, u[:name], u[:email], pass, :add_user_key)
@@ -427,10 +427,15 @@ module VPNMaker
       place_file('ca.key')
       place_file('index.txt')
       place_file('serial')
+      if pass
+        pass_spec = "-passin 'pass:#{pass}' -passout 'pass:#{pass}'"
+      else
+        pass_spec = '-nodes'
+      end
 
-      `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} -passin 'pass:#{pass}' -passout 'pass:#{pass}'`
+      `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} #{pass_spec}`
       `openssl ca -batch -days 3650 -out #{tmppath(user, 'crt')} -in #{tmppath(user, 'csr')} -config #{opensslcnf(h)}`
-      `openssl pkcs12 -export -clcerts -in #{tmppath(user, 'crt')} -inkey #{tmppath(user, 'key')} -out #{tmppath(user, 'p12')} -passin 'pass:#{pass}' -passout 'pass:#{pass}'`
+      `openssl pkcs12 -export -clcerts -in #{tmppath(user, 'crt')} -inkey #{tmppath(user, 'key')} -out #{tmppath(user, 'p12')} #{pass_spec}`
       @tracker.send(delegate, user, name, email, tmpfile(user, 'key'), tmpfile(user, 'crt'), tmpfile(user, 'p12'), tmpfile('index.txt'), tmpfile('serial'))
     end
 
