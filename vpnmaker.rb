@@ -66,7 +66,7 @@ module VPNMaker
     def datadir; self[:datadir]; end
 
     def data_path(k)
-      File.join(self.datadir, k)
+      File.join(File.dirname(@path), self.datadir, k)
     end
 
     def dump(k, v, overwrite=false)
@@ -121,7 +121,7 @@ module VPNMaker
       dir = File.join(File.expand_path(path), name + '.vpn')
 
       FileUtils.mkdir_p(dir)
-      datadir = File.join(dir, "#{name}_data")
+      datadir = "#{name}_data"
       dbpath = File.join(dir, "#{name}.db.yaml")
 
       d = KeyDB.new(dbpath)
