@@ -27,6 +27,14 @@ module VPNMaker
       @mgr = mgr
     end
 
+    def client_conf(client)
+      {
+        :gen_host => Socket.gethostname,
+        :server => @mgr.config[:server],
+        :client => @mgr.config[:client]
+      }.merge(client)
+    end
+
     def server_conf
       {
         :gen_host => Socket.gethostname
@@ -39,7 +47,10 @@ module VPNMaker
     end
 
     def server; apply_erb('server.erb', server_conf); end
-    def client; apply_erb('client.erb'); end
+
+    def client(client)
+      apply_erb('client.erb', client_conf(client));
+    end
   end
 
   class KeyDB

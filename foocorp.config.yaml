@@ -7,6 +7,11 @@
   :host: vpn.foocorp.com
   :port: 1194
 
+:client:
+  :subnet: 172.16.0.0
+  :local_endpoint: 10.10.10.100
+  :remote_endpoint: 10.10.10.1
+
 :key_properties:
   :country: US
   :province: CA
