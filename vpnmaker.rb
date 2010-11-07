@@ -433,7 +433,7 @@ module VPNMaker
     def tmpfile(*args); File.read(tmppath(*args)); end
 
     def build_key(user, name, email, pass, delegate)
-      h = {:key_cn => name, :key_name => name, :key_email => email}
+      h = {:key_cn => user, :key_name => name, :key_email => email}
       place_file('ca.crt')
       place_file('ca.key')
       place_file('index.txt')
