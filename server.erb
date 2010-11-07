@@ -8,8 +8,13 @@ local <%= @host %>
 port <%= @port %>
 proto udp
 
-dev tun
+dev tun0
 server <%= @base_ip %> 255.255.255.0
+<% @subnets.each do |ip| %>
+route <%= ip %> 255.255.255.0
+push "route <%= ip %> 255.255.255.0"<% end %>
+<% @bridgednets.each do |ip| %>
+push "route <%= ip %> 255.255.255.0"<% end %>
 
 # Drop privileges to user/group nobody
 user <%= @user %>
@@ -31,3 +36,5 @@ persist-tun
 persist-key
 
 tls-auth <%= @root %>/keys/ta.key 0
+
+client-config-dir <%= @root %>/ccd
