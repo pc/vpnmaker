@@ -9,12 +9,12 @@ port <%= @port %>
 proto udp
 
 dev tun0
-server <%= @base_ip %> 255.255.255.0
-<% @subnets.each do |ip| %>
-route <%= ip %> 255.255.255.0
-push "route <%= ip %> 255.255.255.0"<% end %>
-<% @bridgednets.each do |ip| %>
-push "route <%= ip %> 255.255.255.0"<% end %>
+server <%= @base_ip %> <%= @base_netmask %>
+<% @subnets.each do |net| %>
+route <%= net[:base_ip] %> <%= net[:netmask] %>
+push "route <%= net[:base_ip] %> <%= net[:netmask] %>"<% end %>
+<% @bridgednets.each do |net| %>
+push "route <%= net[:base_ip] %> <%= net[:netmask] %>"<% end %>
 
 # Drop privileges to user/group nobody
 user <%= @user %>
