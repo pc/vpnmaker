@@ -12,5 +12,4 @@ persist-tun
 cert <%= @user %>-<%= (@revoked.max || -1) + 1 %>.crt
 nobind
 key <%= @user %>-<%= (@revoked.max || -1) + 1 %>.key
-ifconfig <%= @client[:local_endpoint] %> <%= @client[:remote_endpoint] %>
 remote-cert-tls server
