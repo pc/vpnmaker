@@ -1,4 +1,6 @@
 require 'rubygems'
+
+require 'fileutils'
 require 'yaml'
 require 'erb'
 require 'socket'
