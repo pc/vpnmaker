@@ -5,6 +5,10 @@ require 'yaml'
 require 'erb'
 require 'socket'
 
+require 'ipaddr'
+require 'ipaddr_extensions'
+require 'haml'
+
 require 'pry'
 
 class String
@@ -26,10 +30,10 @@ class HashBinding < Object
 end
 
 module VPNMaker
-  autoload :ConfigGenerator, 'lib/config_generator'
-  autoload :KeyDB, 'lib/key_db'
-  autoload :KeyConfig, 'lib/key_config'
-  autoload :KeyTracker, 'lib/key_tracker'
-  autoload :Manager, 'lib/manager'
-  autoload :KeyBuilder, 'lib/key_builder'
+  autoload :ConfigGenerator, './lib/config_generator'
+  autoload :KeyDB, './lib/key_db'
+  autoload :KeyConfig, './lib/key_config'
+  autoload :KeyTracker, './lib/key_tracker'
+  autoload :Manager, './lib/manager'
+  autoload :KeyBuilder, './lib/key_builder'
 end
