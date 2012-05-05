@@ -30,10 +30,10 @@ class HashBinding < Object
 end
 
 module VPNMaker
-  autoload :ConfigGenerator, './lib/config_generator'
-  autoload :KeyDB, './lib/key_db'
-  autoload :KeyConfig, './lib/key_config'
-  autoload :KeyTracker, './lib/key_tracker'
-  autoload :Manager, './lib/manager'
-  autoload :KeyBuilder, './lib/key_builder'
+  autoload :ConfigGenerator, './vpnmaker/config_generator'
+  autoload :KeyDB, './vpnmaker/key_db'
+  autoload :KeyConfig, './vpnmaker/key_config'
+  autoload :KeyTracker, './vpnmaker/key_tracker'
+  autoload :Manager, './vpnmaker/manager'
+  autoload :KeyBuilder, './vpnmaker/key_builder'
 end
