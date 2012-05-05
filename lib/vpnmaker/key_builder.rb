@@ -39,8 +39,7 @@ module VPNMaker
       c = cnfpath
 
       File.open(cnfpath, 'w') do |f|
-        f.write(ERB.new(File.read(__FILE__.path('openssl.erb'))).\
-          result(HashBinding.from_hash(opensslvars.merge(hash)).binding))
+        f.write(Haml::Engine.new(File.read __FILE__.path('openssl.haml')).render(Object.new, opensslvars.merge(hash)))
       end
 
       c

@@ -18,11 +18,6 @@ module VPNMaker
       }.merge(@mgr.config[:server])
     end
 
-    def apply_erb(name, cnf)
-      erb = File.read(__FILE__.path(name))
-      ERB.new(erb).result(HashBinding.from_hash(cnf).binding)
-    end
-
     def server
       haml_vars = server_conf.dup
       haml_vars[:base_ip] = ((a = IPAddr.new haml_vars[:base_ip]); {:net => a.to_s, :mask => a.subnet_mask.to_s})
@@ -33,7 +28,9 @@ module VPNMaker
     end
 
     def client(client)
-      apply_erb('client.erb', client_conf(client))
+      haml_vars = client_conf(client).dup
+      template = File.read(__FILE__.path('client.haml'))
+      Haml::Engine.new(template).render(Object.new, haml_vars)
     end
   end
 end

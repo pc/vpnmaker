@@ -3,6 +3,7 @@ GEM
   specs:
     binding_of_caller (0.6.7)
     coderay (1.0.6)
+    haml (3.1.4)
     ipaddr_extensions (2012.1.13)
     method_source (0.7.1)
     pry (0.9.9.4)
@@ -30,6 +31,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  haml
   ipaddr_extensions
   pry
   pry-doc

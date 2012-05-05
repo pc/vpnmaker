@@ -8,6 +8,7 @@ require 'socket'
 require 'ipaddr'
 require 'ipaddr_extensions'
 require 'haml'
+require 'slim'
 
 require 'pry'
 
@@ -36,4 +37,8 @@ module VPNMaker
   autoload :KeyTracker, './vpnmaker/key_tracker'
   autoload :Manager, './vpnmaker/manager'
   autoload :KeyBuilder, './vpnmaker/key_builder'
+
+  def self.generate(*args)
+    KeyTracker.generate(args.first, args.last)
+  end
 end

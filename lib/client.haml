@@ -6,8 +6,8 @@ pull
 ca ca.crt
 dev tun
 persist-tun
-cert #{user} #{(revoked.max || -1) + 1}.crt
+cert #{user}-#{(revoked.max || - 1) + 1}.crt
 nobind
-key #{user} #{(revoked.max || -1) + 1}.key
+key #{user}-#{(revoked.max || - 1) + 1}.key
 remote-cert-tls server
 :plain
