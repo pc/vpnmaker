@@ -18,8 +18,8 @@ Jeweler::Tasks.new do |gem|
   gem.executables = 'vpnmaker'
   gem.homepage = "http://github.com/voipscout/vpnmaker"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Makes it easy to manage OpenVPN}
+  gem.description = %Q{haml templates and key tracking}
   gem.email = "voipscout@gmail.com"
   gem.authors = ["Voip Scout"]
   # dependencies defined in Gemfile
