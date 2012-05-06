@@ -1,11 +1,33 @@
 #!/usr/bin/env ruby
 require_relative '../lib/vpnmaker.rb'
-require 'trollop'
+require 'micro-optparse'
+#require 'trollop'
 
-opts = Trollop::options do
-  version "vpnmaker 0.0.1 (c) Coolio"
-  banner "vpnmaker [options]"
-  opt :verbose, 'Enable verbose mode'
+module VPNMaker
+  module CLI
+    class Options
+
+
+      def self.parse
+        Parser.new do |p|
+          p.version = "vpnmaker 0.0.1 (c) VoipScout"
+          p.banner = <<-EOS
+VPNMaker is a Ruby library and a cli tool to manage OpenVPN CA, configs and users. It currently supports HAML templates and uses YAML filestore as database backend.
+
+Usage:
+  vpnmaker --prefix [dir.vpn]
+
+Example:
+
+Options:
+EOS
+          p.option :verbose, 'Enable verbose mode', :default => false
+          p.option :prefix, 'Path to .vpn directory to work with', :default => ""
+        end.process!
+      end
+    end
+  end
 end
 
-#raise Trollop::HelpNeeded if ARGV.empty?
+options = VPNMaker::CLI::Options.parse
+pp options

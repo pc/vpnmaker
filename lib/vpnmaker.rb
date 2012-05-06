@@ -1,7 +1,7 @@
 require 'rubygems'
 
 require 'gibberish'
-require 'rubyzip'
+# require 'rubyzip'
 
 require 'fileutils'
 require 'yaml'
