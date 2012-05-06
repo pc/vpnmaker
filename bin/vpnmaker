@@ -6,8 +6,6 @@ require 'micro-optparse'
 module VPNMaker
   module CLI
     class Options
-
-
       def self.parse
         Parser.new do |p|
           p.version = "vpnmaker 0.0.1 (c) VoipScout"
@@ -15,19 +13,47 @@ module VPNMaker
 VPNMaker is a Ruby library and a cli tool to manage OpenVPN CA, configs and users. It currently supports HAML templates and uses YAML filestore as database backend.
 
 Usage:
-  vpnmaker --prefix [dir.vpn]
+  vpnmaker --rootpath [/etc/openvpn/my_server.vpn]
 
 Example:
 
 Options:
 EOS
           p.option :verbose, 'Enable verbose mode', :default => false
-          p.option :prefix, 'Path to .vpn directory to work with', :default => ""
+          p.option :rootpath, '.vpn directory path, new will be created if not found', :default => ""
+          p.option :server, '[create|destroy]', :default => ""
+          p.option :client, '[create|destroy]', :default => ""
         end.process!
+      end
+    end #class Options
+
+    class Commands
+
+      attr_reader :opts
+      attr_accessor :mgr
+      def initialize
+        @opts = VPNMaker::CLI::Options.parse
+        do_commands
+      end
+
+      def do_commands
+        if File.directory?(@opts[:rootpath])
+          @mgr = VPNMaker::Manager.new @opts[:rootpath]
+          puts @mgr.config_generator.server
+        else
+          conf_name = @opts[:rootpath].split('/').last.split('.').first
+          VPNMaker.generate conf_name, @opts[:rootpath].gsub("#{conf_name}.vpn", '')
+          FileUtils.mkdir_p("#{@opts[:rootpath]}/#{conf_name}_data") unless File.directory?("#{@opts[:rootpath]}/#{conf_name}_data")
+          # This is the time to display rbcurses stuff to the user, so
+          # we can setup our CA
+          @mgr = VPNMaker::Manager.new @opts[:rootpath]
+          @mgr.build_ca
+          puts @mgr.config
+        end
+
       end
     end
   end
 end
 
-options = VPNMaker::CLI::Options.parse
-pp options
+VPNMaker::CLI::Commands.new
