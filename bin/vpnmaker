@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+require_relative '../lib/vpnmaker.rb'
+require 'trollop'
+
+opts = Trollop::options do
+  version "vpnmaker 0.0.1 (c) Coolio"
+  banner "vpnmaker [options]"
+  opt :verbose, 'Enable verbose mode'
+end
+
+#raise Trollop::HelpNeeded if ARGV.empty?
