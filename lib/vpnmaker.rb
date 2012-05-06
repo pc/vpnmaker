@@ -1,14 +1,15 @@
 require 'rubygems'
 
+require 'gibberish'
+require 'rubyzip'
+
 require 'fileutils'
 require 'yaml'
-require 'erb'
 require 'socket'
 
 require 'ipaddr'
 require 'ipaddr_extensions'
 require 'haml'
-require 'slim'
 
 require 'pry'
 
