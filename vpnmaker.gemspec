@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Voip Scout"]
   s.date = "2012-05-06"
-  s.description = "TODO: longer description of your gem"
+  s.description = "haml templates and key tracking"
   s.email = "voipscout@gmail.com"
   s.executables = ["vpnmaker"]
   s.extra_rdoc_files = [
@@ -33,13 +33,14 @@ Gem::Specification.new do |s|
     "lib/vpnmaker/key_config.rb",
     "lib/vpnmaker/key_db.rb",
     "lib/vpnmaker/key_tracker.rb",
-    "lib/vpnmaker/manager.rb"
+    "lib/vpnmaker/manager.rb",
+    "vpnmaker.gemspec"
   ]
   s.homepage = "http://github.com/voipscout/vpnmaker"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
   s.rubygems_version = "1.8.24"
-  s.summary = "TODO: one-line summary of your gem"
+  s.summary = "Makes it easy to manage OpenVPN"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
