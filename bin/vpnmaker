@@ -1,58 +1,198 @@
 #!/usr/bin/env ruby
 require_relative '../lib/vpnmaker.rb'
-require 'micro-optparse'
+#require 'micro-optparse'
+#require 'highline'
+require 'highline/import'
+require 'main'
 
+# vpnmaker init [path]
+# vpnmaker server [create|destroy] --path [path]
+# vpnmaker client [create|destroy|regenerate] [client_name] --path [path]
+# vpnmaker cfg server --path [path]
+# vpnmaker cfg client [name] --path [path]
+
+#TODO: use ~/.vpnmaker .vpnmaker and /etc/vpnmaker | maybe vpnmakerrc
 module VPNMaker
   module CLI
     class Options
-      def self.parse
-        Parser.new do |p|
-          p.version = "vpnmaker 0.0.1 (c) VoipScout"
-          p.banner = <<-EOS
-VPNMaker is a Ruby library and a cli tool to manage OpenVPN CA, configs and users. It currently supports HAML templates and uses YAML filestore as database backend.
+      # main DSL
+      Main do
+        version '0.0.1'
+        author 'Copyleft(cl) VoipScout - No rights reserved'
 
-Usage:
-  vpnmaker --rootpath [/etc/openvpn/my_server.vpn]
+        mode('init') {
+          argument('arg1') {puts 'i am arg1'}
+          keyword('keywrd1') {puts 'keyword'}
+          option('opt1') {puts 'woop woop'}
+          environment('env1') {puts 'environ'}
 
-Example:
+          def run
+            puts "init run"
+          end
 
-Options:
-EOS
-          p.option :verbose, 'Enable verbose mode', :default => false
-          p.option :rootpath, '.vpn directory path, new will be created if not found', :default => ""
-          p.option :server, '[create|destroy]', :default => ""
-          p.option :client, '[create|destroy]', :default => ""
-        end.process!
-      end
-    end #class Options
 
-    class Commands
+        }
 
-      attr_reader :opts
-      attr_accessor :mgr
-      def initialize
-        @opts = VPNMaker::CLI::Options.parse
-        do_commands
-      end
+        mode('server') {
+          argument('server_config_fname') {
+            description "filename to save server configuration to"
+            argument :optional
+            cast :string
+            arity -1
+            #TODO: highline, how to not crlf after #agree
+            validate {|fname| File.exist?(fname) ? agree("file exists, overwrite?") : true }
+          }
+          def run
+            puts "server run..."
+            puts "need to save fname=#{params['server_config_fname'].value}" if params['server_config_fname'].given?
+          end
+        }
 
-      def do_commands
-        if File.directory?(@opts[:rootpath])
-          @mgr = VPNMaker::Manager.new @opts[:rootpath]
-          puts @mgr.config_generator.server
-        else
-          conf_name = @opts[:rootpath].split('/').last.split('.').first
-          VPNMaker.generate conf_name, @opts[:rootpath].gsub("#{conf_name}.vpn", '')
-          FileUtils.mkdir_p("#{@opts[:rootpath]}/#{conf_name}_data") unless File.directory?("#{@opts[:rootpath]}/#{conf_name}_data")
-          # This is the time to display rbcurses stuff to the user, so
-          # we can setup our CA
-          @mgr = VPNMaker::Manager.new @opts[:rootpath]
-          @mgr.build_ca
-          puts @mgr.config
+        mode('client') {
+          # argument('new') {puts 'i am arg1'}
+          # keyword('keywrd1') {puts 'keyword'}
+          # option('opt1') {puts 'woop woop'}
+          # environment('FUCKER') {
+          # This reads ENV
+          # cast :string
+          # synopsis 'export FUCKER=value'
+          # }
+
+          mode('list') {
+            description "ie. vpnmaker clients list all"
+            def run
+              pp db.users
+            end
+          }
+
+          mode('config') {
+          }
+
+          mode('create') {
+            keyword('passwd') {
+              argument :optional
+              cast :string
+              arity 1
+              default 'passwd'
+            }
+            def run
+              params['client_name'].values.each_with_index do |c, i|
+                db.create_user(c, c, "#{c}@#{db.config[:key_properties][:email].split('@').last}", (params['passwd'].values[i]))
+              end
+binding.pry
+            end
+          }
+
+          mode('destroy') {
+            def run
+
+            end
+          }
+
+          mode('regenerate') {
+          }
+
+          argument('client_name') {
+            argument :optional
+            arity -1
+            cast :string
+            #synopsis 'client_name'
+            description "This is the basename of client certificate file"
+            # validate {|name|   ? YAML.load_file(path) : {}}
+          }
+
+          environment('VPNMAKER_DIR') {
+            required
+            arity 1
+            cast :string
+            description "export VPNMAKER_DIR=\"/my/config/vpnmaker.vpn\""
+            validate {|dir_name| File.directory?(dir_name)}
+          }
+
+          def run
+            puts "client run"
+          end
+
+        }
+
+        # Global run() is overwritten by specific mode run
+        def run
+          puts "Hitting global run()"
+          params.each {|p| pp "#{p.class} - #{p.name} => #{p.value}"}
+          @opts = params
+          pp @opts
         end
 
+        def db
+          VPNMaker::Manager.new params['VPNMAKER_DIR'].value
+        end
+
+
+      end #
+
+    end #class Options
+
+
+    class Menu
+
+      attr_reader :cfg
+      def initialize
+        menu
       end
-    end
+
+      def menu
+        say("\nDo you have a yaml file to use as initial config?")
+        choose do |menu|
+          menu.layout = :one_line
+          # menu.index = :letter
+          # menu.prompt = 'Y/N?'
+          menu.choice(:yes) do |cmd, details|
+            ask_for_file_location
+          end
+          menu.choice(:no) do ask_for_config_values end
+        end
+      end
+
+      def ask_for_file_location
+        path = ask("Please enter the full path")
+        @cfg = File.exist?(path) ? YAML.load_file(path) : say('File not found')
+      end
+
+      def ask_for_config_values
+        @cfg = ask('Going to take some info now', ) do |q|
+        end
+      end
+    end #class Menu
+
+    # class Commands
+
+    #   attr_reader :opts
+    #   attr_accessor :mgr
+    #   def initialize
+    #     @opts = VPNMaker::CLI::Options.parse
+    #     do_commands
+    #   end
+
+    #   def do_commands
+    #     if File.directory?(@opts[:rootpath])
+    #       @mgr = VPNMaker::Manager.new @opts[:rootpath]
+    #       puts @mgr.config_generator.server
+    #     else
+    #       conf_name = @opts[:rootpath].split('/').last.split('.').first
+    #       VPNMaker.generate conf_name, @opts[:rootpath].gsub("#{conf_name}.vpn", '')
+    #       FileUtils.mkdir_p("#{@opts[:rootpath]}/#{conf_name}_data") unless File.directory?("#{@opts[:rootpath]}/#{conf_name}_data")
+    #       # This is the time to ask a few questions,
+    #       # so we can setup our CA
+    #       File.open("#{@opts[:rootpath]}/#{conf_name}.config.yaml", 'w') {|f| f.write(Menu.new.cfg.to_yaml)}
+    #       @mgr = VPNMaker::Manager.new @opts[:rootpath]
+    #       @mgr.build_ca
+    #       pp @mgr.config
+    #     end
+    #   end
+    # end #class Commands
+
   end
 end
 
-VPNMaker::CLI::Commands.new
+#VPNMaker::CLI::Commands.new
+VPNMaker::CLI::Options.new
