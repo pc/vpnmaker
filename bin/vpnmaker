@@ -78,8 +78,16 @@ module VPNMaker
           def run
             name = params['conf_name'].value
             dir = params['new_dir_path'].value
+
             VPNMaker.generate name, dir
-            FileUtils.mkdir_p(File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+
+            data_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+            template_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_templates")
+            client_config_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_client_configs")
+
+            [data_dir, template_dir, client_config_dir].each {|dir| FileUtils.mkdir_p(dir)}
+            lib_dir = File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib')
+            FileUtils.cp Dir.glob(lib_dir + "/*.haml"), template_dir
 
             if params['email'].given?
               initial_config = {
@@ -89,11 +97,18 @@ module VPNMaker
                   :city => params['city'].value,
                   :organization => params['organization'].value,
                   :email => params['email'].value
+                },
+                :site => {
+                  :data_dir => data_dir.split('/').last,
+                  :template_dir => template_dir.split('/').last,
+                  :client_conf_dir => client_config_dir.split('/').last
                 }
               }
-              File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml)}
+              example_config = YAML.load_file(lib_dir + "/example_vpnmaker_site.config.yaml").to_yaml.gsub(/\n|---/, "\n# ")
+              File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml + example_config)}
               mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
               mgr.build_ca
+              say("Please edit files in #{template_dir} and #{dir}/#{name}.vpn/#{name}.config.yaml before proceeding further")
             else
               say('Time to mod yaml files')
             end
@@ -101,7 +116,26 @@ module VPNMaker
         }
 
         mode('server') {
-          argument('server_config_fname') {
+          mode('build') {
+            def run
+              db.build_server
+              say('Please edit your config.yaml if you haven\'t done so yet')
+            end
+          }
+          mode('config') {
+            def run
+              puts db.config_generator.server
+            end
+          }
+          keyword('dir') {
+            required
+            arity 1
+            cast :string
+            description "ie. /my/config/vpnmaker.vpn"
+            validate {|dir_name| File.directory?(File.expand_path(dir_name))}
+          }
+
+          argument('server_config_name') {
             description "filename to save server configuration to"
             argument :optional
             cast :string
@@ -110,6 +144,7 @@ module VPNMaker
             validate {|fname| File.exist?(fname) ? agree("file exists, overwrite?") : true }
           }
           def run
+
             puts "server run..."
             puts "need to save fname=#{params['server_config_fname'].value}" if params['server_config_fname'].given?
           end
@@ -126,6 +161,11 @@ module VPNMaker
           }
 
           mode('config') {
+            def run
+              params['client_name'].values.each do |c|
+                puts db.config_generator.client(db.user(c))
+              end
+            end
           }
 
           mode('create') {

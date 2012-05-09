@@ -50,6 +50,6 @@ module VPNMaker
       @tracker.user(user)
     end
 
-    def config_generator; ConfigGenerator.new(self); end
+    def config_generator(*args); ConfigGenerator.new([self] + args); end
   end
 end

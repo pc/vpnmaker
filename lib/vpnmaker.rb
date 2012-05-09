@@ -32,7 +32,8 @@ class HashBinding < Object
 end
 
 module VPNMaker
-  path = __FILE__.gsub(File.basename(__FILE__), '')
+  path = (File.dirname File.expand_path(__FILE__)) + "/"
+
   autoload :ConfigGenerator, "#{path}vpnmaker/config_generator"
   autoload :KeyDB, "#{path}vpnmaker/key_db"
   autoload :KeyConfig, "#{path}vpnmaker/key_config"

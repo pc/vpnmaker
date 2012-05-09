@@ -20,11 +20,38 @@ server #{base_ip[:net]} #{base_ip[:mask]}
 \
 user #{user}
 group #{group}
-dh #{root}/keys/dh.pem
-ca #{root}/keys/ca.crt
-cert #{root}/keys/server.crt
-key #{root}/keys/server.key
-crl-verify #{root}/keys/crl.pem
+- if type == :default
+
+  <dh>
+  #{dh}
+  </dh>
+
+  <ca>
+  #{ca}
+  </ca>
+
+  <cert>
+  #{cert}
+  </cert>
+
+  <key>
+  #{key}
+  </key>
+
+  <crl-verify>
+  #{crl}
+  </crl-verify>
+
+  <ta>
+  #{ta}
+  </ta>
+
+- else
+  dh #{root}/keys/dh.pem
+  ca #{root}/keys/ca.crt
+  cert #{root}/keys/server.crt
+  key #{root}/keys/server.key
+  crl-verify #{root}/keys/crl.pem
   
 keepalive 10 120
 
@@ -34,5 +61,4 @@ persist-tun
 persist-key
 
 tls-auth #{root}/keys/ta.key 0
-client-config-dir #{root}/ccd
 :plain
