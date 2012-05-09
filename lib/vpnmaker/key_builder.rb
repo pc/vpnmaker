@@ -39,7 +39,7 @@ module VPNMaker
       c = cnfpath
 
       File.open(cnfpath, 'w') do |f|
-        f.write(Haml::Engine.new(File.read __FILE__.path('openssl.haml')).render(Object.new, opensslvars.merge(hash)))
+        f.write(Haml::Engine.new(File.read(@tracker.path + "/" + @config[:site][:template_dir] + "/" + 'openssl.haml')).render(Object.new, opensslvars.merge(hash)))
       end
 
       c

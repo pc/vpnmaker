@@ -1,7 +1,7 @@
 require 'rubygems'
 
 require 'gibberish'
-require 'rubyzip'
+# require 'rubyzip'
 
 require 'fileutils'
 require 'yaml'
@@ -32,12 +32,14 @@ class HashBinding < Object
 end
 
 module VPNMaker
-  autoload :ConfigGenerator, './vpnmaker/config_generator'
-  autoload :KeyDB, './vpnmaker/key_db'
-  autoload :KeyConfig, './vpnmaker/key_config'
-  autoload :KeyTracker, './vpnmaker/key_tracker'
-  autoload :Manager, './vpnmaker/manager'
-  autoload :KeyBuilder, './vpnmaker/key_builder'
+  path = (File.dirname File.expand_path(__FILE__)) + "/"
+
+  autoload :ConfigGenerator, "#{path}vpnmaker/config_generator"
+  autoload :KeyDB, "#{path}vpnmaker/key_db"
+  autoload :KeyConfig, "#{path}vpnmaker/key_config"
+  autoload :KeyTracker, "#{path}vpnmaker/key_tracker"
+  autoload :Manager, "#{path}vpnmaker/manager"
+  autoload :KeyBuilder, "#{path}vpnmaker/key_builder"
 
   def self.generate(*args)
     KeyTracker.generate(args.first, args.last)
