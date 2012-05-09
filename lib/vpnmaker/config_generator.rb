@@ -6,15 +6,12 @@ module VPNMaker
     end
 
     def default_template
-      dirname = (@mgr.tracker.path + "/" + @mgr.config[:site][:data_dir])
+      @dirname = (@mgr.tracker.path + "/" + @mgr.config[:site][:data_dir])
       {
         :type => :default,
-        :dh => File.read(dirname + "/dh.pem"),
-        :ca => File.read(dirname + "/ca.crt"),
-        :cert => File.read(dirname + "/server.crt"),
-        :key => File.read(dirname + "/server.key"),
-        :crl => File.read(dirname + "/crl.pem"),
-        :ta => File.read(dirname + "/ta.key")
+        :dh => File.read(@dirname + "/dh.pem"),
+        :ca => File.read(@dirname + "/ca.crt"),
+        :ta => File.read(@dirname + "/ta.key")
       }
     end
     def client_conf(client)
@@ -22,13 +19,16 @@ module VPNMaker
         :gen_host => Socket.gethostname,
         :server => @mgr.config[:server],
         :client => @mgr.config[:client]
-      }.merge(client)
+      }.merge(client).merge(:key => File.read(@dirname + "/#{client[:user]}-#{(client[:revoked].max || - 1) + 1}.key" ),
+                            :cert => File.read(@dirname + "/#{client[:user]}-#{(client[:revoked].max || - 1) + 1}.crt")).merge(@runtime_cfg)
     end
 
     def server_conf
       {
         :gen_host => Socket.gethostname
-      }.merge(@mgr.config[:server]).merge(@runtime_cfg)
+      }.merge(@mgr.config[:server]).merge(@runtime_cfg).merge(:key => File.read(@dirname + "/server.key"),
+                                                              :cert => File.read(@dirname + "/server.crt"),
+                                                              :crl => File.read(@dirname + "/crl.pem"))
     end
 
     def server
