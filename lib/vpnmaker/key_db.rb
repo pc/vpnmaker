@@ -44,7 +44,7 @@ module VPNMaker
     def sync
       if disk_version == @db[:version]
         if @touched
-          FileUtils.mkdir_p(self.datadir)
+          FileUtils.mkdir_p(File.dirname(@path) + "/" + self.datadir)
           @db[:version] += 1
           File.open(@path, 'w') {|f| f.write(@db.to_yaml)}
           true
