@@ -1,11 +1,222 @@
 #!/usr/bin/env ruby
 require_relative '../lib/vpnmaker.rb'
-require 'trollop'
+#require 'micro-optparse'
+#require 'highline'
+require 'highline/import'
+require 'main'
 
-opts = Trollop::options do
-  version "vpnmaker 0.0.1 (c) Coolio"
-  banner "vpnmaker [options]"
-  opt :verbose, 'Enable verbose mode'
-end
+#TODO: use ~/.vpnmaker .vpnmaker and /etc/vpnmaker | maybe vpnmakerrc
+module VPNMaker
+  module CLI
+    module RFC822
+      EmailAddress = begin
+                       qtext = '[^\\x0d\\x22\\x5c\\x80-\\xff]'
+                       dtext = '[^\\x0d\\x5b-\\x5d\\x80-\\xff]'
+                       atom = '[^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-' +
+                         '\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+'
+                       quoted_pair = '\\x5c[\\x00-\\x7f]'
+                       domain_literal = "\\x5b(?:#{dtext}|#{quoted_pair})*\\x5d"
+                       quoted_string = "\\x22(?:#{qtext}|#{quoted_pair})*\\x22"
+                       domain_ref = atom
+                       sub_domain = "(?:#{domain_ref}|#{domain_literal})"
+                       word = "(?:#{atom}|#{quoted_string})"
+                       domain = "#{sub_domain}(?:\\x2e#{sub_domain})*"
+                       local_part = "#{word}(?:\\x2e#{word})*"
+                       addr_spec = "#{local_part}\\x40#{domain}"
+                       pattern = /\A#{addr_spec.force_encoding('ASCII-8BIT')}\z/
+                     end
+    end
 
-#raise Trollop::HelpNeeded if ARGV.empty?
+    class Options
+      # main DSL
+      Main do
+        version '0.0.1'
+        author 'Copyleft(cl) VoipScout - No rights reserved'
+
+        mode('init') {
+          mode('cli') {
+            argument('country') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('province') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('city') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('organization') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('email') {
+              required
+              cast :string
+              arity 1
+              validate {|e| e =~ RFC822::EmailAddress}
+            }
+
+          } #mode 'cli'
+
+          argument('conf_name') {
+            required
+            cast :string
+            arity 1
+          }
+          argument('new_dir_path') {
+            required
+            cast :string
+            arity 1
+            validate {|dir| File.directory?(File.expand_path(dir))}
+          }
+          def run
+            name = params['conf_name'].value
+            dir = params['new_dir_path'].value
+            VPNMaker.generate name, dir
+            FileUtils.mkdir_p(File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+
+            if params['email'].given?
+              initial_config = {
+                :key_properties => {
+                  :country => params['country'].value,
+                  :province => params['province'].value,
+                  :city => params['city'].value,
+                  :organization => params['organization'].value,
+                  :email => params['email'].value
+                }
+              }
+              File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml)}
+              mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
+              mgr.build_ca
+            else
+              say('Time to mod yaml files')
+            end
+          end
+        }
+
+        mode('server') {
+          argument('server_config_fname') {
+            description "filename to save server configuration to"
+            argument :optional
+            cast :string
+            arity -1
+            #TODO: highline, how to not crlf after #agree
+            validate {|fname| File.exist?(fname) ? agree("file exists, overwrite?") : true }
+          }
+          def run
+            puts "server run..."
+            puts "need to save fname=#{params['server_config_fname'].value}" if params['server_config_fname'].given?
+          end
+        }
+
+        mode('client') {
+
+          mode('list') {
+            description "ie. vpnmaker clients list"
+            def run
+              pp db.users.select {|u| !db.user(u)[:revoked].include?(db.user(u)[:active_key])}
+              # db.users.each{|u| puts db.user(u)}
+            end
+          }
+
+          mode('config') {
+          }
+
+          mode('create') {
+            keyword('passwd') {
+              argument :optional
+              cast :string
+              arity 1
+              default 'passwd'
+            }
+
+            def run
+              params['client_name'].values.each_with_index do |c, i|
+                passwd = params['passwd'].values[i] ? params['passwd'].values[i] : params['passwd'].default
+                db.create_user(c, c, "#{c}@#{db.config[:key_properties][:email].split('@').last}", passwd) if db.users.select {|r| r =~ /#{c}/}.empty?
+              end
+            end
+          }
+
+          mode('destroy') {
+            option('all') {
+              argument :optional
+              cast :bool
+            }
+            def run
+              if params['all'].value
+                db.users.each {|u| db.delete_user(u)} unless db.users.size == 0
+              else
+                params['client_name'].values.each do |c|
+                  db.delete_user(c) unless !db.user(c)
+                end
+              end
+            end
+          }
+
+          mode('regenerate') {
+            keyword('passwd') {
+              argument :optional
+              cast :string
+              arity 1
+              default 'passwd'
+            }
+
+            def run
+              params['client_name'].values.each_with_index do |c, i|
+                passwd = params['passwd'].values[i] ? params['passwd'].values[i] : params['passwd'].default
+                db.regenerate_user(c, passwd)
+              end
+            end
+          }
+
+          argument('client_name') {
+            argument :optional
+            arity -1
+            cast :string
+            #synopsis 'client_name'
+            description "username"
+            # validate {|name|   ? YAML.load_file(path) : {}}
+          }
+          # environment('VPNMAKER_DIR')
+          keyword('dir') {
+            required
+            arity 1
+            cast :string
+            description "ie. /my/config/vpnmaker.vpn"
+            validate {|dir_name| File.directory?(File.expand_path(dir_name))}
+          }
+
+          def run
+            puts "client run"
+          end
+
+        }
+
+        # Global run() is overwritten by specific mode run
+        def run
+          puts "Hitting global run()"
+          params.each {|p| pp "#{p.class} - #{p.name} => #{p.value}"}
+          @opts = params
+          pp @opts
+        end
+
+        def db
+          VPNMaker::Manager.new params['dir'].value
+        end
+
+
+      end #
+
+    end #class Options
+
+  end #module CLI
+end #module VPNMaker
+
+VPNMaker::CLI::Options.new
