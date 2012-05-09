@@ -19,11 +19,11 @@ gem 'ipaddr_extensions'
 gem 'haml'
 gem 'main', :git => 'git://github.com/ahoward/main.git'
 
-gem 'hashugar', :git => 'git://github.com/jsuchal/hashugar.git'
+#gem 'hashugar', :git => 'git://github.com/jsuchal/hashugar.git'
 gem 'highline' #, :git => 'https://github.com/JEG2/highline.git'
 
 #gem 'rbcurse-core', :git => 'git://github.com/rkumar/rbcurse-core.git'
 #gem 'rbcurse-extras', :git => 'git://github.com/rkumar/rbcurse-extras.git'
 
-gem 'gibberish', :git => 'git://github.com/mdp/gibberish.git'
+# gem 'gibberish', :git => 'git://github.com/mdp/gibberish.git'
 # gem 'rubyzip', :git => 'git://github.com/aussiegeek/rubyzip.git'
