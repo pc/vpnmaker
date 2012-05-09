@@ -3,6 +3,7 @@ module VPNMaker
     attr_reader :builder
     attr_reader :db
     attr_reader :config
+    attr_reader :path
 
     def self.generate(name, path=nil)
       path ||= '/tmp'
@@ -146,6 +147,7 @@ module VPNMaker
     def users; @db[:users]; end
 
     def initialize(name, dir)
+      @path = dir
       @db = KeyDB.new(File.join(dir, name + '.db.yaml'))
       @config = KeyConfig.new(File.join(dir, name + '.config.yaml'))
       @builder = KeyBuilder.new(self, @config)

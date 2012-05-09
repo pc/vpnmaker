@@ -98,7 +98,7 @@ module VPNMaker
                   :organization => params['organization'].value,
                   :email => params['email'].value
                 },
-                :site_vpnmaker => {
+                :site => {
                   :data_dir => data_dir.split('/').last,
                   :template_dir => template_dir.split('/').last,
                   :client_conf_dir => client_config_dir.split('/').last
@@ -116,7 +116,25 @@ module VPNMaker
         }
 
         mode('server') {
-          argument('server_config_fname') {
+          mode('build') {
+            def run
+              db.build_server
+            end
+          }
+          mode('config') {
+            def run
+              puts db.config_generator.server
+            end
+          }
+          keyword('dir') {
+            required
+            arity 1
+            cast :string
+            description "ie. /my/config/vpnmaker.vpn"
+            validate {|dir_name| File.directory?(File.expand_path(dir_name))}
+          }
+
+          argument('server_config_name') {
             description "filename to save server configuration to"
             argument :optional
             cast :string
@@ -125,6 +143,7 @@ module VPNMaker
             validate {|fname| File.exist?(fname) ? agree("file exists, overwrite?") : true }
           }
           def run
+
             puts "server run..."
             puts "need to save fname=#{params['server_config_fname'].value}" if params['server_config_fname'].given?
           end
