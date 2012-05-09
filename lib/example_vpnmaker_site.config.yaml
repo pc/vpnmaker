@@ -1,24 +1,26 @@
+---
+:key_properties:
+  :country: US
+  :province: CA
+  :city: San Francisco
+  :organization: myorg
+  :email: security@my.org
+
 :server:
-  :base_ip: 10.10.10.0
+  :base_ip: 10.10.10.0/24
   :bridgednets: # real networks to bridge via the VPN server
-    - 172.16.0.0
+    - 172.16.0.0/24
   :subnets: # subnets that exist only on the VPN
-    - 10.10.11.0
+    - 10.10.11.0/8
+    - 10.11.2.0/24
   :user: nobody
   :group: nogroup
-  :root: /root/openvpn
+  :root: /etc/openvpn
   :log: /var/log/openvpn.log
-  :host: vpn.foocorp.com
+  :host: staging.pvstream.in
   :port: 1194
 
 :client:
   :subnet: 172.16.0.0
   :local_endpoint: 10.10.10.100
   :remote_endpoint: 10.10.10.1
-
-:key_properties:
-  :country: US
-  :province: CA
-  :city: San Francisco
-  :organization: FooCorp Inc
-  :email: sec@foocorp.com

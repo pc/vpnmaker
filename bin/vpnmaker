@@ -79,7 +79,12 @@ module VPNMaker
             name = params['conf_name'].value
             dir = params['new_dir_path'].value
             VPNMaker.generate name, dir
-            FileUtils.mkdir_p(File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+            data_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+            template_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_templates")
+            client_config_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_client_configs")
+
+            [data_dir, template_dir, client_config_dir].each {|dir| FileUtils.mkdir_p(dir)}
+            FileUtils.cp Dir.glob(File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib') + "/*.haml"), template_dir
 
             if params['email'].given?
               initial_config = {
@@ -89,6 +94,11 @@ module VPNMaker
                   :city => params['city'].value,
                   :organization => params['organization'].value,
                   :email => params['email'].value
+                },
+                :site_vpnmaker => {
+                  :data_dir => data_dir.split('/').last,
+                  :template_dir => template_dir.split('/').last,
+                  :client_conf_dir => client_config_dir.split('/').last
                 }
               }
               File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml)}
