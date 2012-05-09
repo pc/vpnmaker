@@ -119,6 +119,7 @@ module VPNMaker
           mode('build') {
             def run
               db.build_server
+              say('Please edit your config.yaml if you haven\'t done so yet')
             end
           }
           mode('config') {
@@ -160,6 +161,11 @@ module VPNMaker
           }
 
           mode('config') {
+            def run
+              params['client_name'].values.each do |c|
+                puts db.config_generator.client(db.user(c))
+              end
+            end
           }
 
           mode('create') {
