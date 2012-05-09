@@ -78,13 +78,16 @@ module VPNMaker
           def run
             name = params['conf_name'].value
             dir = params['new_dir_path'].value
+
             VPNMaker.generate name, dir
+
             data_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
             template_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_templates")
             client_config_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_client_configs")
 
             [data_dir, template_dir, client_config_dir].each {|dir| FileUtils.mkdir_p(dir)}
-            FileUtils.cp Dir.glob(File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib') + "/*.haml"), template_dir
+            lib_dir = File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib')
+            FileUtils.cp Dir.glob(lib_dir + "/*.haml"), template_dir
 
             if params['email'].given?
               initial_config = {
@@ -101,9 +104,11 @@ module VPNMaker
                   :client_conf_dir => client_config_dir.split('/').last
                 }
               }
-              File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml)}
+              example_config = YAML.load_file(lib_dir + "/example_vpnmaker_site.config.yaml").to_yaml.gsub(/\n|---/, "\n# ")
+              File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml + example_config)}
               mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
               mgr.build_ca
+              say("Please edit files in #{template_dir} and #{dir}/#{name}.vpn/#{name}.config.yaml before proceeding further")
             else
               say('Time to mod yaml files')
             end
