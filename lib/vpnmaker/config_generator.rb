@@ -29,10 +29,12 @@ module VPNMaker
     end
 
     def server_conf
+      separator = '-----BEGIN CERTIFICATE-----'
+      cert = File.read(@dirname + "/server.crt").split(separator).last.insert(0, separator)
       {
         :gen_host => Socket.gethostname
       }.merge(@mgr.config[:server]).merge(@runtime_cfg).merge(:key => File.read(@dirname + "/server.key"),
-                                                              :cert => File.read(@dirname + "/server.crt"),
+                                                              :cert => cert,
                                                               :crl => File.read(@dirname + "/crl.pem"))
     end
 
@@ -52,7 +54,6 @@ module VPNMaker
       template = File.read(@mgr.tracker.path + \
                            "/" + @mgr.config[:site][:template_dir] + \
                            "/" + 'client.haml')
-      # template = File.read(__FILE__.path('client.haml'))
       Haml::Engine.new(template).render(Object.new, haml_vars)
     end
   end
