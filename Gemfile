@@ -13,17 +13,38 @@ group :development do
   gem "jeweler" #, "~> 1.8.3"
 end
 
-gem 'ipaddr_extensions'
-#, :git => 'git://github.com/jamesotron/IPAddrExtensions.git'
-
 gem 'haml'
-gem 'main', :git => 'git://github.com/ahoward/main.git'
 
-#gem 'hashugar', :git => 'git://github.com/jsuchal/hashugar.git'
+# cli options parser
+gem 'main', :git => 'git://github.com/ahoward/main.git'
 gem 'highline' #, :git => 'https://github.com/JEG2/highline.git'
 
+#gem 'hashugar', :git => 'git://github.com/jsuchal/hashugar.git'
 #gem 'rbcurse-core', :git => 'git://github.com/rkumar/rbcurse-core.git'
 #gem 'rbcurse-extras', :git => 'git://github.com/rkumar/rbcurse-extras.git'
 
-# gem 'gibberish', :git => 'git://github.com/mdp/gibberish.git'
-# gem 'rubyzip', :git => 'git://github.com/aussiegeek/rubyzip.git'
+# openssl wrappers
+gem 'gibberish', :git => 'git://github.com/mdp/gibberish.git'
+gem 'cert_lib', :git => 'git://github.com/victorgrey/cert_lib.git'
+
+# model stuff
+gem 'datamapper', "~> 1.2.0"
+# gem 'dm-do-adapter'
+gem 'dm-aggregates'
+gem 'dm-types', "~> 1.2.1"
+gem 'dm-observer'
+gem 'dm-migrations'
+gem 'dm-timestamps'
+gem 'dm-serializer', "~> 1.2.0"
+gem 'dm-validations'
+gem 'dm-mysql-adapter'
+
+# support libs
+gem 'chronic'
+gem 'ipaddr_extensions'
+#, :git => 'git://github.com/jamesotron/IPAddrExtensions.git'
+gem 'rubyzip', :git => 'git://github.com/aussiegeek/rubyzip.git'
+
+# reporting
+gem 'ruport'
+gem 'ruport-util'
