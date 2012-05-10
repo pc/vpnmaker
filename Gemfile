@@ -25,7 +25,7 @@ gem 'highline' #, :git => 'https://github.com/JEG2/highline.git'
 
 # openssl wrappers
 gem 'gibberish', :git => 'git://github.com/mdp/gibberish.git'
-gem 'cert_lib', :git => 'git://github.com/victorgrey/cert_lib.git'
+#gem 'cert_lib', :git => 'git://github.com/victorgrey/cert_lib.git'
 
 # model stuff
 gem 'datamapper', "~> 1.2.0"
