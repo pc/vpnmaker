@@ -9,16 +9,18 @@ server #{base_ip[:net]} #{base_ip[:mask]}
 tls-server
 comp-lzo
 cipher AES-256-CBC
-  crl-verify #{root}/keys/crl.pem
+crl-verify /etc/openvpn/crl.pem
 \
-\# subnets.each do
-- subnets.each do |net|
-  route #{net[:net]} #{net[:mask]}
-  push route #{net[:net]} #{net[:mask]}
+- if subnets
+  \# subnets.each do
+  - subnets.each do |net|
+    route #{net[:net]} #{net[:mask]}
+    push route #{net[:net]} #{net[:mask]}
 \
-\# bridgednets.each do
-- bridgednets.each do |net|
-  push route #{net[:net]} #{net[:mask]}
+- if bridgednets
+  \# bridgednets.each do
+  - bridgednets.each do |net|
+    push route #{net[:net]} #{net[:mask]}
 \
 push "redirect-gateway"
 client-to-client
@@ -55,7 +57,8 @@ group #{group}
   crl-verify #{root}/keys/crl.pem
   
 keepalive 10 120
-log #{log}
+\#log #{log}
 persist-tun
 persist-key
+
 :plain

@@ -17,7 +17,7 @@
   :group: nogroup
   :root: /etc/openvpn
   :log: /var/log/openvpn.log
-  :host: staging.pvstream.in
+  :host: MY_HOST_FQDN
   :port: 1194
 
 :client:
