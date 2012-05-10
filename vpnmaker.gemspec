@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "vpnmaker"
-  s.version = "1.0.0"
+  s.version = "1.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Voip Scout"]
-  s.date = "2012-05-09"
+  s.date = "2012-05-10"
   s.description = "haml templates and key tracking"
   s.email = "voipscout@gmail.com"
   s.executables = ["vpnmaker"]
@@ -24,6 +24,9 @@ Gem::Specification.new do |s|
     "VERSION",
     "bin/vpnmaker",
     "lib/client.haml",
+    "lib/datastore.rb",
+    "lib/datastore/ca.rb",
+    "lib/datastore/user.rb",
     "lib/example_vpnmaker_site.config.yaml",
     "lib/openssl.haml",
     "lib/server.haml",
@@ -46,10 +49,25 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<ipaddr_extensions>, [">= 0"])
       s.add_runtime_dependency(%q<haml>, [">= 0"])
       s.add_runtime_dependency(%q<main>, [">= 0"])
       s.add_runtime_dependency(%q<highline>, [">= 0"])
+      s.add_runtime_dependency(%q<gibberish>, [">= 0"])
+      s.add_runtime_dependency(%q<cert_lib>, [">= 0"])
+      s.add_runtime_dependency(%q<datamapper>, ["~> 1.2.0"])
+      s.add_runtime_dependency(%q<dm-aggregates>, [">= 0"])
+      s.add_runtime_dependency(%q<dm-types>, ["~> 1.2.1"])
+      s.add_runtime_dependency(%q<dm-observer>, [">= 0"])
+      s.add_runtime_dependency(%q<dm-migrations>, [">= 0"])
+      s.add_runtime_dependency(%q<dm-timestamps>, [">= 0"])
+      s.add_runtime_dependency(%q<dm-serializer>, ["~> 1.2.0"])
+      s.add_runtime_dependency(%q<dm-validations>, [">= 0"])
+      s.add_runtime_dependency(%q<dm-mysql-adapter>, [">= 0"])
+      s.add_runtime_dependency(%q<chronic>, [">= 0"])
+      s.add_runtime_dependency(%q<ipaddr_extensions>, [">= 0"])
+      s.add_runtime_dependency(%q<rubyzip>, [">= 0"])
+      s.add_runtime_dependency(%q<ruport>, [">= 0"])
+      s.add_runtime_dependency(%q<ruport-util>, [">= 0"])
       s.add_development_dependency(%q<pry>, [">= 0"])
       s.add_development_dependency(%q<pry-doc>, [">= 0"])
       s.add_development_dependency(%q<pry-rails>, [">= 0"])
@@ -61,10 +79,25 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<bundler>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, [">= 0"])
     else
-      s.add_dependency(%q<ipaddr_extensions>, [">= 0"])
       s.add_dependency(%q<haml>, [">= 0"])
       s.add_dependency(%q<main>, [">= 0"])
       s.add_dependency(%q<highline>, [">= 0"])
+      s.add_dependency(%q<gibberish>, [">= 0"])
+      s.add_dependency(%q<cert_lib>, [">= 0"])
+      s.add_dependency(%q<datamapper>, ["~> 1.2.0"])
+      s.add_dependency(%q<dm-aggregates>, [">= 0"])
+      s.add_dependency(%q<dm-types>, ["~> 1.2.1"])
+      s.add_dependency(%q<dm-observer>, [">= 0"])
+      s.add_dependency(%q<dm-migrations>, [">= 0"])
+      s.add_dependency(%q<dm-timestamps>, [">= 0"])
+      s.add_dependency(%q<dm-serializer>, ["~> 1.2.0"])
+      s.add_dependency(%q<dm-validations>, [">= 0"])
+      s.add_dependency(%q<dm-mysql-adapter>, [">= 0"])
+      s.add_dependency(%q<chronic>, [">= 0"])
+      s.add_dependency(%q<ipaddr_extensions>, [">= 0"])
+      s.add_dependency(%q<rubyzip>, [">= 0"])
+      s.add_dependency(%q<ruport>, [">= 0"])
+      s.add_dependency(%q<ruport-util>, [">= 0"])
       s.add_dependency(%q<pry>, [">= 0"])
       s.add_dependency(%q<pry-doc>, [">= 0"])
       s.add_dependency(%q<pry-rails>, [">= 0"])
@@ -77,10 +110,25 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<jeweler>, [">= 0"])
     end
   else
-    s.add_dependency(%q<ipaddr_extensions>, [">= 0"])
     s.add_dependency(%q<haml>, [">= 0"])
     s.add_dependency(%q<main>, [">= 0"])
     s.add_dependency(%q<highline>, [">= 0"])
+    s.add_dependency(%q<gibberish>, [">= 0"])
+    s.add_dependency(%q<cert_lib>, [">= 0"])
+    s.add_dependency(%q<datamapper>, ["~> 1.2.0"])
+    s.add_dependency(%q<dm-aggregates>, [">= 0"])
+    s.add_dependency(%q<dm-types>, ["~> 1.2.1"])
+    s.add_dependency(%q<dm-observer>, [">= 0"])
+    s.add_dependency(%q<dm-migrations>, [">= 0"])
+    s.add_dependency(%q<dm-timestamps>, [">= 0"])
+    s.add_dependency(%q<dm-serializer>, ["~> 1.2.0"])
+    s.add_dependency(%q<dm-validations>, [">= 0"])
+    s.add_dependency(%q<dm-mysql-adapter>, [">= 0"])
+    s.add_dependency(%q<chronic>, [">= 0"])
+    s.add_dependency(%q<ipaddr_extensions>, [">= 0"])
+    s.add_dependency(%q<rubyzip>, [">= 0"])
+    s.add_dependency(%q<ruport>, [">= 0"])
+    s.add_dependency(%q<ruport-util>, [">= 0"])
     s.add_dependency(%q<pry>, [">= 0"])
     s.add_dependency(%q<pry-doc>, [">= 0"])
     s.add_dependency(%q<pry-rails>, [">= 0"])
