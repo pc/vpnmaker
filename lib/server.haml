@@ -9,22 +9,22 @@ server #{base_ip[:net]} #{base_ip[:mask]}
 tls-server
 comp-lzo
 cipher AES-256-CBC
-crl-verify /etc/openvpn/crl.pem
-\
-- if subnets
+crl-verify #{crl_path}/crl.pem
+
+- unless subnets.empty?
   \# subnets.each do
   - subnets.each do |net|
     route #{net[:net]} #{net[:mask]}
     push route #{net[:net]} #{net[:mask]}
-\
-- if bridgednets
+
+- unless bridgednets.empty?
   \# bridgednets.each do
   - bridgednets.each do |net|
     push route #{net[:net]} #{net[:mask]}
 \
 push "redirect-gateway"
 client-to-client
-\
+
 user #{user}
 group #{group}
 - if type == :default

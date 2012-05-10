@@ -32,7 +32,8 @@ module VPNMaker
       separator = '-----BEGIN CERTIFICATE-----'
       cert = File.read(@dirname + "/server.crt").split(separator).last.insert(0, separator)
       {
-        :gen_host => Socket.gethostname
+        :gen_host => Socket.gethostname,
+        :crl_path => @mgr.tracker.path
       }.merge(@mgr.config[:server]).merge(@runtime_cfg).merge(:key => File.read(@dirname + "/server.key"),
                                                               :cert => cert,
                                                               :crl => File.read(@dirname + "/crl.pem"))
@@ -41,8 +42,8 @@ module VPNMaker
     def server
       haml_vars = server_conf.dup
       haml_vars[:base_ip] = ((a = IPAddr.new haml_vars[:base_ip]); {:net => a.to_s, :mask => a.subnet_mask.to_s})
-      haml_vars[:bridgednets] = haml_vars[:bridgednets].map {|net| a = (IPAddr.new net); {:net => a.to_s, :mask => a.subnet_mask.to_s}}
-      haml_vars[:subnets] = haml_vars[:subnets].map {|net| a = (IPAddr.new net); {:net => a.to_s, :mask => a.subnet_mask.to_s}}
+      haml_vars[:bridgednets] ? (haml_vars[:bridgednets] = haml_vars[:bridgednets].map {|net| a = (IPAddr.new net); {:net => a.to_s, :mask => a.subnet_mask.to_s}}) : (haml_vars[:bridgednets] = Hash.new)
+      haml_vars[:subnets] ? (haml_vars[:subnets] = haml_vars[:subnets].map {|net| a = (IPAddr.new net); {:net => a.to_s, :mask => a.subnet_mask.to_s}}) : (haml_vars[:subnets] = Hash.new)
       template = File.read(@mgr.tracker.path + \
                            "/" + @mgr.config[:site][:template_dir] + \
                            "/" + 'server.haml')
