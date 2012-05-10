@@ -188,6 +188,7 @@ module VPNMaker
 
           mode('create') {
             keyword('passwd') {
+              description "This is PKCS12 password, default is \"passwd\""
               argument :optional
               cast :string
               arity 1
