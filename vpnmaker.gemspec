@@ -5,11 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "vpnmaker"
-<<<<<<< HEAD
-  s.version = "1.0.6"
-=======
   s.version = "1.0.7"
->>>>>>> release/1.0.7
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Voip Scout"]
@@ -40,7 +36,8 @@ Gem::Specification.new do |s|
     "lib/vpnmaker/key_config.rb",
     "lib/vpnmaker/key_db.rb",
     "lib/vpnmaker/key_tracker.rb",
-    "lib/vpnmaker/manager.rb"
+    "lib/vpnmaker/manager.rb",
+    "vpnmaker.gemspec"
   ]
   s.homepage = "http://github.com/voipscout/vpnmaker"
   s.licenses = ["MIT"]
