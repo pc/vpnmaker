@@ -14,13 +14,18 @@ module VPNMaker
         :ta => File.read(@dirname + "/ta.key")
       }
     end
+
     def client_conf(client)
+      fname = client[:user] + '-' + ((client[:revoked].max || - 1) + 1).to_s
+      separator = '-----BEGIN CERTIFICATE-----'
+      cert = File.read(@dirname + "/#{fname}.crt").split(separator).last.insert(0, separator)
+
       {
         :gen_host => Socket.gethostname,
         :server => @mgr.config[:server],
         :client => @mgr.config[:client]
-      }.merge(client).merge(:key => File.read(@dirname + "/#{client[:user]}-#{(client[:revoked].max || - 1) + 1}.key" ),
-                            :cert => File.read(@dirname + "/#{client[:user]}-#{(client[:revoked].max || - 1) + 1}.crt")).merge(@runtime_cfg)
+      }.merge(client).merge(:key => File.read(@dirname + "/#{fname}.key" ),
+                            :cert => cert).merge(@runtime_cfg)
     end
 
     def server_conf
