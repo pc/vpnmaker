@@ -35,13 +35,13 @@ module VPNMaker
     autoload :User, "#{path}datastore/user"
     autoload :CA, "#{path}datastore/ca"
 
-    DataMapper.setup(:default, {
-                       :host => '127.0.0.1',
-                       :port => 3306,
-                       :database => 'vpnmaker',
-                       :adapter => 'mysql',
-                       :username => 'root',
-                       :password => 'gavno.123!'})
+    # DataMapper.setup(:default, {
+    #                    :host => '127.0.0.1',
+    #                    :port => 3306,
+    #                    :database => 'vpnmaker',
+    #                    :adapter => 'mysql',
+    #                    :username => 'root',
+    #                    :password => 'gavno.123!'})
 
   end
 end
