@@ -108,10 +108,11 @@ module VPNMaker
       else
         pass_spec = '-nodes'
       end
-
-      `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} #{pass_spec}`
+      `openssl req -batch -days 3650 -new -keyout #{tmppath(user, 'key')} -out #{tmppath(user, 'csr')} -config #{opensslcnf(h)} -nodes`
       `openssl ca -batch -days 3650 -out #{tmppath(user, 'crt')} -in #{tmppath(user, 'csr')} -config #{opensslcnf(h)}`
-      # TODO: this still asks for the export password
+      # TODO: this still asks for the export password and we hack
+      # around it from bin/vpnmaker. This is actually something that
+      # should only be generated dynamically upon user request.
       `openssl pkcs12 -export -clcerts -in #{tmppath(user, 'crt')} -inkey #{tmppath(user, 'key')} -out #{tmppath(user, 'p12')} #{pass_spec}`
       @tracker.send(delegate, user, name, email, tmpfile(user, 'key'), tmpfile(user, 'crt'), tmpfile(user, 'p12'), tmpfile('index.txt'), tmpfile('serial'))
     end
