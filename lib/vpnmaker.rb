@@ -34,6 +34,8 @@ end
 module VPNMaker
   path = (File.dirname File.expand_path(__FILE__)) + "/"
 
+  autoload :DataStore, "#{path}datastore"
+
   autoload :ConfigGenerator, "#{path}vpnmaker/config_generator"
   autoload :KeyDB, "#{path}vpnmaker/key_db"
   autoload :KeyConfig, "#{path}vpnmaker/key_config"

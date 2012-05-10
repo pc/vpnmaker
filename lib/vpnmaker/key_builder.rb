@@ -24,9 +24,9 @@ module VPNMaker
         :key_org => @config[:key_properties][:organization],
         :key_email => @config[:key_properties][:email],
         :key_org => @config[:key_properties][:organization],
-        :key_ou => 'Organization Unit',
-        :key_cn => 'Common Name',
-        :key_name => 'Name'
+        :key_ou => @config[:key_properties][:organization_unit],
+        :key_cn => @config[:key_properties][:common_name],
+        :key_name => @config[:key_properties][:name]
       }
     end
 
