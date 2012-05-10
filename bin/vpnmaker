@@ -145,6 +145,42 @@ module VPNMaker
               puts db.config_generator.server
             end
           }
+          mode('install') {
+            description "this will make /etc/openvpn/[your server].ovpn.conf and crl.pem and some files to make NAT work, look into basedir"
+            def run
+              #FIXME: This needs to be cleaned up
+              iptables_nat_rules = <<EOS
+# nat Table rules
+*nat
+:POSTROUTING ACCEPT [0:0]
+# Forward traffic through ppp0 - Change to match you out-interface
+-A POSTROUTING -s #{db.tracker.config[:server][:base_ip]} -o eth0 -j MASQUERADE
+# don't delete the 'COMMIT' line or these nat table rules won't
+# be processed
+COMMIT
+EOS
+              etc_default_ufw = File.read('/etc/default/ufw').gsub('DEFAULT_FORWARD_POLICY="DROP"', 'DEFAULT_FORWARD_POLICY="ACCEPT"')
+              etc_ufw_sysctl_conf = File.read('/etc/ufw/sysctl.conf').gsub('#net/ipv4/ip_forward=1', 'net/ipv4/ip_forward=1')
+              etc_ufw_before_rules = `sudo cat /etc/ufw/before.rules`.insert(0, iptables_nat_rules)
+              cfg = db.config_generator.server
+              fname = db.tracker.path + "/" + Manager.vpn_name(db.tracker.path) + "_server.conf"
+              File.open(fname ,'w') {|f| f.write(cfg)}
+              File.open("#{db.tracker.path}/ufw", 'w') {|f| f.write(etc_default_ufw)}
+              File.open("#{db.tracker.path}/sysctl.conf", 'w') {|f| f.write(etc_ufw_sysctl_conf)}
+              File.open("#{db.tracker.path}/before.rules", 'w') {|f| f.write(etc_ufw_before_rules)}
+
+              `sudo cp #{fname} /etc/openvpn`
+              `sudo cp #{db.tracker.path}/#{Manager.vpn_name(db.tracker.path)}_data/crl.pem /etc/openvpn`
+
+              msg = <<EOS
+sudo cp #{db.tracker.path}/ufw /etc/default/ufw
+sudo cp #{db.tracker.path}/sysctl.conf /etc/ufw/sysctl.conf
+sudo cp #{db.tracker.path}/before.rules /etc/ufw/before.rules
+EOS
+              say('Please check those files before copy/pasting!')
+              say msg
+            end
+          }
           keyword('dir') {
             required
             arity 1
@@ -162,7 +198,6 @@ module VPNMaker
             validate {|fname| File.exist?(fname) ? agree("file exists, overwrite?") : true }
           }
           def run
-
             puts "server run..."
             puts "need to save fname=#{params['server_config_fname'].value}" if params['server_config_fname'].given?
           end

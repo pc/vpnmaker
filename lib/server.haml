@@ -9,7 +9,7 @@ server #{base_ip[:net]} #{base_ip[:mask]}
 tls-server
 comp-lzo
 cipher AES-256-CBC
-crl-verify #{crl_path}/crl.pem
+crl-verify /etc/openvpn/crl.pem
 
 - unless subnets.empty?
   \# subnets.each do
