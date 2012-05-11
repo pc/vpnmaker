@@ -27,24 +27,24 @@ gem 'highline' #, :git => 'https://github.com/JEG2/highline.git'
 gem 'gibberish', :git => 'git://github.com/mdp/gibberish.git'
 #gem 'cert_lib', :git => 'git://github.com/victorgrey/cert_lib.git'
 
+
 # model stuff
-gem 'datamapper', "~> 1.2.0"
-# gem 'dm-do-adapter'
-gem 'dm-aggregates'
-gem 'dm-types', "~> 1.2.1"
-gem 'dm-observer'
-gem 'dm-migrations'
-gem 'dm-timestamps'
-gem 'dm-serializer', "~> 1.2.0"
-gem 'dm-validations'
-gem 'dm-mysql-adapter'
+# gem 'datamapper', "~> 1.2.0"
+# gem 'dm-aggregates'
+# gem 'dm-types', "~> 1.2.1"
+# gem 'dm-observer'
+# gem 'dm-migrations'
+# gem 'dm-timestamps'
+# gem 'dm-serializer', "~> 1.2.0"
+# gem 'dm-validations'
+# gem 'dm-mysql-adapter'
 
 # support libs
 gem 'chronic'
 gem 'ipaddr_extensions'
 #, :git => 'git://github.com/jamesotron/IPAddrExtensions.git'
-gem 'rubyzip', :git => 'git://github.com/aussiegeek/rubyzip.git'
+# gem 'rubyzip', :git => 'git://github.com/aussiegeek/rubyzip.git'
 
 # reporting
-gem 'ruport'
-gem 'ruport-util'
+# gem 'ruport'
+# gem 'ruport-util'
