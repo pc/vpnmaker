@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "vpnmaker"
-  s.version = "1.0.10"
+  s.version = "1.0.11"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Voip Scout"]
-  s.date = "2012-05-11"
+  s.date = "2012-05-12"
   s.description = "haml templates and key tracking"
   s.email = "voipscout@gmail.com"
   s.executables = ["vpnmaker"]
@@ -55,6 +55,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<gibberish>, [">= 0"])
       s.add_runtime_dependency(%q<chronic>, [">= 0"])
       s.add_runtime_dependency(%q<ipaddr_extensions>, [">= 0"])
+      s.add_runtime_dependency(%q<ya_email_validator>, [">= 0"])
       s.add_development_dependency(%q<pry>, [">= 0"])
       s.add_development_dependency(%q<pry-doc>, [">= 0"])
       s.add_development_dependency(%q<pry-rails>, [">= 0"])
@@ -72,6 +73,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<gibberish>, [">= 0"])
       s.add_dependency(%q<chronic>, [">= 0"])
       s.add_dependency(%q<ipaddr_extensions>, [">= 0"])
+      s.add_dependency(%q<ya_email_validator>, [">= 0"])
       s.add_dependency(%q<pry>, [">= 0"])
       s.add_dependency(%q<pry-doc>, [">= 0"])
       s.add_dependency(%q<pry-rails>, [">= 0"])
@@ -90,6 +92,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<gibberish>, [">= 0"])
     s.add_dependency(%q<chronic>, [">= 0"])
     s.add_dependency(%q<ipaddr_extensions>, [">= 0"])
+    s.add_dependency(%q<ya_email_validator>, [">= 0"])
     s.add_dependency(%q<pry>, [">= 0"])
     s.add_dependency(%q<pry-doc>, [">= 0"])
     s.add_dependency(%q<pry-rails>, [">= 0"])
