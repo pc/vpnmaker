@@ -6,7 +6,7 @@ require 'ya_email_validator'
 require 'highline/import'
 require 'main'
 
-
+# This validates email addresses
 class String; include YaEmailValidator; end
 
 #TODO: use ~/.vpnmaker .vpnmaker and /etc/vpnmaker | maybe vpnmakerrc
@@ -75,47 +75,9 @@ module VPNMaker
             arity 1
             validate {|dir| File.directory?(File.expand_path(dir))}
           }
+
           def run
-            name = params['conf_name'].value
-            dir = params['new_dir_path'].value
-
-            VPNMaker.generate name, dir
-
-            data_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
-            template_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_templates")
-            client_config_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_client_configs")
-
-            [data_dir, template_dir, client_config_dir].each {|dir| FileUtils.mkdir_p(dir)}
-            lib_dir = File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib')
-            FileUtils.cp Dir.glob(lib_dir + "/*.haml"), template_dir
-
-            if params['email'].given?
-              initial_config = {
-                :key_properties => {
-                  :country => params['country'].value,
-                  :province => params['province'].value,
-                  :city => params['city'].value,
-                  :organization => params['organization'].value,
-                  :organization_unit => params['organization_unit'].value,
-                  :common_name => params['common_name'].value,
-                  :name => params['key_name'].value,
-                  :email => params['email'].value
-                },
-                :site => {
-                  :data_dir => data_dir.split('/').last,
-                  :template_dir => template_dir.split('/').last,
-                  :client_conf_dir => client_config_dir.split('/').last
-                }
-              }
-
-              example_config = YAML.load_file(lib_dir + "/example_vpnmaker_site.config.yaml").to_yaml.gsub(/\n|---/, "\n#")
-              File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml + example_config)}
-              mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
-              mgr.build_ca
-              say("Please edit files in #{template_dir} and #{dir}/#{name}.vpn/#{name}.config.yaml before proceeding further")
-            else
-              say('Time to mod yaml files')
-            end
+            get_init_config
           end
         }
 
@@ -284,11 +246,51 @@ EOS
           VPNMaker::Manager.new params['dir'].value
         end
 
+        def get_init_config
+          name = params['conf_name'].value
+          dir = params['new_dir_path'].value
 
-      end #
+          VPNMaker.generate name, dir
 
+          data_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+          template_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_templates")
+          client_config_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_client_configs")
+
+          [data_dir, template_dir, client_config_dir].each {|dir| FileUtils.mkdir_p(dir)}
+          lib_dir = File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib')
+          FileUtils.cp Dir.glob(lib_dir + "/*.haml"), template_dir
+
+          if params['email'].given?
+            initial_config = {
+              :key_properties => {
+                :country => params['country'].value,
+                :province => params['province'].value,
+                :city => params['city'].value,
+                :organization => params['organization'].value,
+                :organization_unit => params['organization_unit'].value,
+                :common_name => params['common_name'].value,
+                :name => params['key_name'].value,
+                :email => params['email'].value
+              },
+              :site => {
+                :data_dir => data_dir.split('/').last,
+                :template_dir => template_dir.split('/').last,
+                :client_conf_dir => client_config_dir.split('/').last
+              }
+            }
+
+            example_config = YAML.load_file(lib_dir + "/example_vpnmaker_site.config.yaml").to_yaml.gsub(/\n|---/, "\n#")
+            File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml + example_config)}
+            mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
+            mgr.build_ca
+            say("Please edit files in #{template_dir} and #{dir}/#{name}.vpn/#{name}.config.yaml before proceeding further")
+          else
+            say('Time to mod yaml files')
+          end
+        end
+
+      end # Main {}
     end #class Options
-
   end #module CLI
 end #module VPNMaker
 
