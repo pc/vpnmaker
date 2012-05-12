@@ -48,3 +48,5 @@ gem 'ipaddr_extensions'
 # reporting
 # gem 'ruport'
 # gem 'ruport-util'
+
+gem 'ya_email_validator'
