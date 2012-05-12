@@ -2,35 +2,20 @@
 require_relative '../lib/vpnmaker.rb'
 #require 'micro-optparse'
 #require 'highline'
+require 'ya_email_validator'
 require 'highline/import'
 require 'main'
+
+
+class String; include YaEmailValidator; end
 
 #TODO: use ~/.vpnmaker .vpnmaker and /etc/vpnmaker | maybe vpnmakerrc
 module VPNMaker
   module CLI
-    module RFC822
-      EmailAddress = begin
-                       qtext = '[^\\x0d\\x22\\x5c\\x80-\\xff]'
-                       dtext = '[^\\x0d\\x5b-\\x5d\\x80-\\xff]'
-                       atom = '[^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-' +
-                         '\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+'
-                       quoted_pair = '\\x5c[\\x00-\\x7f]'
-                       domain_literal = "\\x5b(?:#{dtext}|#{quoted_pair})*\\x5d"
-                       quoted_string = "\\x22(?:#{qtext}|#{quoted_pair})*\\x22"
-                       domain_ref = atom
-                       sub_domain = "(?:#{domain_ref}|#{domain_literal})"
-                       word = "(?:#{atom}|#{quoted_string})"
-                       domain = "#{sub_domain}(?:\\x2e#{sub_domain})*"
-                       local_part = "#{word}(?:\\x2e#{word})*"
-                       addr_spec = "#{local_part}\\x40#{domain}"
-                       pattern = /\A#{addr_spec.force_encoding('ASCII-8BIT')}\z/
-                     end
-    end
-
     class Options
       # main DSL
       Main do
-        version '0.0.1'
+        version File.read(File.expand_path("../..", __FILE__) + "/VERSION")
         author 'Copyleft(cl) VoipScout - No rights reserved'
 
         mode('init') {
@@ -74,7 +59,7 @@ module VPNMaker
               required
               cast :string
               arity 1
-              validate {|e| e =~ RFC822::EmailAddress}
+              validate {|e| e.email?}
             }
 
           } #mode 'cli'
@@ -122,6 +107,7 @@ module VPNMaker
                   :client_conf_dir => client_config_dir.split('/').last
                 }
               }
+
               example_config = YAML.load_file(lib_dir + "/example_vpnmaker_site.config.yaml").to_yaml.gsub(/\n|---/, "\n#")
               File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml + example_config)}
               mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
@@ -293,14 +279,6 @@ EOS
           end
 
         }
-
-        # Global run() is overwritten by specific mode run
-        def run
-          puts "Hitting global run()"
-          params.each {|p| pp "#{p.class} - #{p.name} => #{p.value}"}
-          @opts = params
-          pp @opts
-        end
 
         def db
           VPNMaker::Manager.new params['dir'].value
