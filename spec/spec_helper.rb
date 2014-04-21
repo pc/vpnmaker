@@ -22,8 +22,21 @@ def key_props
       :country => "US",
       :province => "CA",
       :city => "San Francisco",
-      :organization => "Entropy",
+      :organization => "VPNMaker",
       :email => "test@example.com"
+    }
+  }
+end
+
+def server_props
+  { :server => {
+      :base_ip => "10.10.10.0",
+      :user => "nouser",
+      :group => "nogroup",
+      :root => "/root/openvpn",
+      :log => "/var/log/openvpn.log",
+      :host => "example.com",
+      :port => "1194"
     }
   }
 end
