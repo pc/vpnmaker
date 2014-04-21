@@ -33,6 +33,8 @@ end
 
 module VPNMaker
 
+  class BuildError < StandardError; end
+
   ROOT = File.dirname File.dirname __FILE__
 
   autoload :DataStore,       File.join(ROOT, "lib", "datastore")
