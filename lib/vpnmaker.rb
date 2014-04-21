@@ -43,7 +43,19 @@ module VPNMaker
   autoload :Manager, "#{path}vpnmaker/manager"
   autoload :KeyBuilder, "#{path}vpnmaker/key_builder"
 
-  def self.generate(*args)
-    KeyTracker.generate(args.first, args.last)
+  class << self
+    def root
+      spec = Gem::Specification.find_by_name("VPNMaker")
+      spec.gem_dir
+    end
+
+    def template_path(name=nil)
+      return "#{root}/templates" if name.nil?
+      "#{root}/templates/#{name}"
+    end
+
+    def generate(*args)
+      KeyTracker.generate(args.first, args.last)
+    end
   end
 end

@@ -16,6 +16,23 @@ RSpec::Core::RakeTask.new
 
 task :test => :spec
 
+task :console do
+  begin
+    # use Pry if it exists
+    require 'pry'
+    require 'vpnmaker'
+    Pry.start
+  rescue LoadError
+    require 'irb'
+    require 'irb/completion'
+    require 'vpnmaker'
+    ARGV.clear
+    IRB.start
+  end
+end
+
+task :c => :console
+
 
 require 'jeweler'
 Jeweler::Tasks.new do |gem|

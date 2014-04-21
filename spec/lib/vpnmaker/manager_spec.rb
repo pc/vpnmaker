@@ -23,6 +23,7 @@ describe VPNMaker::Manager, fakefs: true do
     end
 
     it "should be able to build the ca files" do
+      raise RuntimeError, VPNMaker.template_path
       VPNMaker::Manager.new( vpn_root(:my) ).build_ca
       expect(File.exist? "#{vpn_data(:my)}/ca.crt").to be_true
       expect(File.exist? "#{vpn_data(:my)}/ca.key").to be_true
