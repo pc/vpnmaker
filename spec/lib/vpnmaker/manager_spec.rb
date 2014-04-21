@@ -26,11 +26,15 @@ describe VPNMaker::Manager do
       expect( VPNMaker::Manager.new vpn_root(:my) ).to be_an_instance_of VPNMaker::Manager
     end
 
-    it "should be able to build the ca files" do
+    it "should build the intial keys and files" do
       VPNMaker::Manager.new( vpn_root(:my) ).build_ca
       expect(File.exist? "#{vpn_data(:my)}/ca.crt").to be_true
       expect(File.exist? "#{vpn_data(:my)}/ca.key").to be_true
+      expect(File.exist? "#{vpn_data(:my)}/crl.pem").to be_true
+      expect(File.exist? "#{vpn_data(:my)}/index.txt").to be_true
+      expect(File.exist? "#{vpn_data(:my)}/serial").to be_true
     end
+
   end
 
 end
