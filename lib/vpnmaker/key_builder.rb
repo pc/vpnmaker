@@ -90,7 +90,7 @@ module VPNMaker
       place_file('serial')
 
       `openssl req -batch -days 3650 -nodes -new -keyout #{tmppath('server.key')} -out #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
-      `openssl ca -batch -days 3650 -out #{tmppath('server.crt')} -in #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
+      `openssl req -batch -days 3650 -out #{tmppath('server.crt')} -in #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
 
       raise BuildError, "Server certificate was empty" if tmpfile('server.crt').empty?
       raise BuildError, "Server key was empty" if tmpfile('server.key').empty?
