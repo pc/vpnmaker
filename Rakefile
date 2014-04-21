@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'rubygems'
 require 'bundler'
+
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
@@ -9,6 +10,12 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'rake'
+require "rspec/core/rake_task"
+
+RSpec::Core::RakeTask.new
+
+task :test => :spec
+
 
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
@@ -34,3 +41,4 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
