@@ -1,7 +1,7 @@
 module VPNMaker
   class KeyBuilder
     def initialize(tracker, config)
-      @tmpdir = '/tmp/keybuilder'
+      @tmpdir = File.join tracker.path, "tmp"
       clean_tmpdir
       @tracker = tracker
       @config = config
@@ -12,7 +12,7 @@ module VPNMaker
       FileUtils.mkdir_p(@tmpdir)
     end
 
-    def cnfpath; "/tmp/openssl-#{$$}.cnf"; end
+    def cnfpath; File.join @tmpdir, "openssl-#{$$}.cnf"; end
 
     def opensslvars
       {
