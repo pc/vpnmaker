@@ -1,17 +1,19 @@
 module VPNMaker
   class Manager
-    attr_reader :tracker
+    attr_reader :tracker, :data_dir
 
     def self.vpn_name(dir); dir =~ /(^|\/)([^\/\.]+)\.vpn/ ? $2 : nil; end
 
     def initialize(dir)
       name = self.class.vpn_name(File.expand_path(dir))
       @tracker = KeyTracker.new(name, File.expand_path(dir))
+      @data_dir = File.join File.expand_path(dir), "data"
     end
 
     def config; @tracker.config; end
 
     def build_ca; @tracker.builder.build_ca; end
+
     def build_server
       @tracker.builder.build_server_key
       @tracker.builder.build_ta_key

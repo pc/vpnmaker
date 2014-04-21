@@ -17,14 +17,13 @@ module VPNMaker
       dir = File.join(File.expand_path(path), name + '.vpn')
 
       FileUtils.mkdir_p(dir)
-      datadir = "#{name}_data"
       dbpath = File.join(dir, "#{name}.db.yaml")
 
       db = KeyDB.new(dbpath)
       db[:version] = 0
       db[:modified] = Time.now
       db[:users] = {}
-      db[:datadir] = datadir
+      db[:datadir] = "data"
       db.sync
     end
 

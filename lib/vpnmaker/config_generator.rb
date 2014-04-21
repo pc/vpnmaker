@@ -6,7 +6,7 @@ module VPNMaker
     end
 
     def default_template
-      @dirname = (File.join(@mgr, @mgr.tracker.path, @mgr.config[:site][:data_dir]))
+      @dirname = (File.join(@mgr.data_dir))
       {
         :type => :default,
         :dh => File.read(File.join(@dirname, "dh.pem")),

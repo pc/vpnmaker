@@ -14,7 +14,7 @@ def vpn_root(name=nil)
 end
 
 def vpn_data(name)
-  "#{vpn_root(name)}/#{name}_data"
+  "#{vpn_root(name)}/data"
 end
 
 def key_props
