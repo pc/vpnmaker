@@ -1,9 +1,13 @@
 require 'spec_helper'
 require 'fileutils'
 
-describe VPNMaker::Manager, fakefs: true do
+describe VPNMaker::Manager do
   before(:each) do
     FileUtils.mkdir_p "/tmp/keybuilder"
+  end
+
+  after(:each) do
+    FileUtils.rm_rf vpn_root
   end
 
   context "when there is no config file" do
@@ -23,7 +27,7 @@ describe VPNMaker::Manager, fakefs: true do
     end
 
     it "should be able to build the ca files" do
-      raise RuntimeError, VPNMaker.template_path
+expect(File.exist? "/home/robert/src/vpnmaker/templates/openssl.haml").to be_true
       VPNMaker::Manager.new( vpn_root(:my) ).build_ca
       expect(File.exist? "#{vpn_data(:my)}/ca.crt").to be_true
       expect(File.exist? "#{vpn_data(:my)}/ca.key").to be_true

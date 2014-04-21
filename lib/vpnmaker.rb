@@ -32,21 +32,21 @@ class HashBinding < Object
 end
 
 module VPNMaker
-  path = (File.dirname File.expand_path(__FILE__)) + "/"
 
-  autoload :DataStore, "#{path}datastore"
+  ROOT = File.dirname File.dirname __FILE__
 
-  autoload :ConfigGenerator, "#{path}vpnmaker/config_generator"
-  autoload :KeyDB, "#{path}vpnmaker/key_db"
-  autoload :KeyConfig, "#{path}vpnmaker/key_config"
-  autoload :KeyTracker, "#{path}vpnmaker/key_tracker"
-  autoload :Manager, "#{path}vpnmaker/manager"
-  autoload :KeyBuilder, "#{path}vpnmaker/key_builder"
+  autoload :DataStore,       File.join(ROOT, "lib", "datastore")
+  autoload :ConfigGenerator, File.join(ROOT, "lib", "vpnmaker", "config_generator")
+  autoload :KeyDB,           File.join(ROOT, "lib", "vpnmaker", "key_db")
+  autoload :KeyConfig,       File.join(ROOT, "lib", "vpnmaker", "key_config")
+  autoload :KeyTracker,      File.join(ROOT, "lib", "vpnmaker", "key_tracker")
+  autoload :Manager,         File.join(ROOT, "lib", "vpnmaker", "manager")
+  autoload :KeyBuilder,      File.join(ROOT, "lib", "vpnmaker", "key_builder")
 
   class << self
+
     def root
-      spec = Gem::Specification.find_by_name("VPNMaker")
-      spec.gem_dir
+      VPNMaker::ROOT
     end
 
     def template_path(name=nil)

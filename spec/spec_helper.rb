@@ -1,13 +1,16 @@
 require 'vpnmaker'
-require 'fakefs/spec_helpers'
 
 RSpec.configure do |config|
-  config.include FakeFS::SpecHelpers, fakefs: true
+end
+
+def testfs
+  root = File.dirname File.dirname __FILE__
+  "#{root}/tmp"
 end
 
 def vpn_root(name=nil)
-  return "/vpns" if name.nil?
-  "/vpns/#{name}.vpn"
+  return "#{testfs}/vpns" if name.nil?
+  "#{testfs}/vpns/#{name}.vpn"
 end
 
 def vpn_data(name)

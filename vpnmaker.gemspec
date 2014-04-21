@@ -15,7 +15,6 @@ Gem::Specification.new do |s|
   s.summary = "Makes it easy to manage OpenVPN"
   s.homepage = "http://github.com/voipscout/vpnmaker"
   s.licenses = ["MIT"]
-  s.rubygems_version = "1.8.24"
 
   s.executables = ["vpnmaker"]
   s.extra_rdoc_files = ["README.rdoc"]
