@@ -27,7 +27,6 @@ describe VPNMaker::Manager do
     end
 
     it "should be able to build the ca files" do
-expect(File.exist? "/home/robert/src/vpnmaker/templates/openssl.haml").to be_true
       VPNMaker::Manager.new( vpn_root(:my) ).build_ca
       expect(File.exist? "#{vpn_data(:my)}/ca.crt").to be_true
       expect(File.exist? "#{vpn_data(:my)}/ca.key").to be_true
