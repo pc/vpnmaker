@@ -46,6 +46,42 @@ describe VPNMaker::Manager do
       expect(File.exist? "#{vpn_data(:my)}/ta.key").to be_true
     end
 
+    it "should create a new user" do
+      manager.build_ca
+      manager.build_server
+      manager.create_user 'joe', 'Joe Bloggs', 'joe.bloggs@example.com', 'password'
+      expect(manager.users).to include "joe"
+    end
+
+    context "and a user has been created" do
+      before(:each) do
+        manager.build_ca
+        manager.build_server
+        manager.create_user 'joe', 'Joe Bloggs', 'joe.bloggs@example.com', 'password'
+      end
+
+      it "should have user details" do
+        details = manager.user('joe')
+        expect(details).to be_a Hash
+        expect(details[:email]).to eq 'joe.bloggs@example.com'
+      end
+
+      it "should have no revoked keys" do
+        details = manager.user('joe')
+        expect(details[:revoked]).to be_empty
+        expect(details[:active_key]).to eq 0
+      end
+
+      context "and a user has had a key revoked" do
+        it "should have a revoked key in the user details" do
+          manager.regenerate_user('joe', 'newpassword')
+          details = manager.user('joe')
+          expect(details[:revoked]).to eq [0]
+          expect(details[:active_key]).to eq 1
+        end
+      end
+    end
+
     context "when there are no server configs" do
       it "should raise an error" do
         expect {
