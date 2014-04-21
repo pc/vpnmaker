@@ -25,11 +25,11 @@ describe VPNMaker::Manager do
     end
 
     it "should create an instance of manager" do
-      expect( VPNMaker::Manager.new vpn_root(:my) ).to be_an_instance_of VPNMaker::Manager
+      expect( manager ).to be_an_instance_of VPNMaker::Manager
     end
 
     it "should build the intial keys and files" do
-      VPNMaker::Manager.new( vpn_root(:my) ).build_ca
+      manager.build_ca
       expect(File.exist? "#{vpn_data(:my)}/ca.crt").to be_true
       expect(File.exist? "#{vpn_data(:my)}/ca.key").to be_true
       expect(File.exist? "#{vpn_data(:my)}/crl.pem").to be_true
@@ -49,7 +49,7 @@ describe VPNMaker::Manager do
     context "when there are no server configs" do
       it "should raise an error" do
         expect {
-          VPNMaker::Manager.new( vpn_root(:my) ).config_generator.server
+          manager.config_generator.server
         }.to raise_error
       end
     end
@@ -64,7 +64,6 @@ describe VPNMaker::Manager do
       it "should build the server config" do
         manager.build_ca
         manager.build_server
-        # pry
         config = manager.config_generator.server
         expect(config).to include "10.10.10.0"
         expect(config).to include "example.com"
