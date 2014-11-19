@@ -1,8 +1,18 @@
+most of the code was stolen from here: http://github.com/pc/vpnmaker, thank you!
+i made a gem, converted it to use haml, added bin/vpnmaker cli
 = VPNMaker
 
-VPNMaker takes the teetering jankiness out of setting up and administering OpenVPN VPNs.
+VPNMaker takes the teetering jankiness out of setting up and administering OpenVPN.
 
-== Key management
+It comes without any guarantees, the code seems to work for me, your mileage will invariably vary!
+== Usage
+* vpnmaker -h is your best friend
+help format sucks, but it's better then using easy-rsa or doing openssl by hand
+== Example
+>>#vpnmaker init cli conf_name new_dir_path country province city organization organization_unit common_name key_name email
+
+== From the forked version:
+=== Key management
 
 To set up your VPN, run:
 
@@ -65,7 +75,7 @@ When Joe leaves the company, we can do:
 
 Which does the same revocation as in <tt>regenerate_user</tt>, but doesn't generate new keys.
 
-== OpenVPN management
+=== OpenVPN management
 
 To get OpenVPN set up, you should go back and edit <tt>foocorp.config.yaml</tt>, and add the following section:
 
@@ -77,13 +87,17 @@ To get OpenVPN set up, you should go back and edit <tt>foocorp.config.yaml</tt>,
     :log: /var/log/openvpn.log
     :host: foocorp.com
     :port: 1194
-    
+
 You may want to modify some of the values. Then, head back to irb, and do something like:
 
   >> puts mgr.config_generator.server
 
 Which will output a config file that you can copy and paste into <tt>openvpn.conf</tt> on your server. You'll want make sure that the following files exist in <tt>/root/openvpn</tt> (or whatever your root directory is): <tt>ca.crt</tt> (so that the server can verify the validity of client certificates), <tt>dh.pem</tt> (for encryption of the connection), <tt>server.crt</tt> (the server's public key), <tt>server.key</tt> (the server's private key), <tt>ta.key</tt> (shared secret between server and clients), and <tt>crl.pem</tt> (so that the server will reject revoked certificates).
 
-== OpenVPN client
+=== OpenVPN client
 
 Each client will need: <tt>user.key</tt>, <tt>user.crt</tt>, <tt>ca.crt</tt> and <tt>ta.key</tt>. Make sure to enable tls-auth = 1.
+
+== Testing
+
+Tests are done with Rspec.  To run the tests simply run `bundle exec rake test` or `bundle exec rake spec`.

@@ -1,0 +1,297 @@
+#!/usr/bin/env ruby
+require_relative '../lib/vpnmaker.rb'
+#require 'micro-optparse'
+#require 'highline'
+require 'ya_email_validator'
+require 'highline/import'
+require 'main'
+
+# This validates email addresses
+class String; include YaEmailValidator; end
+
+#TODO: use ~/.vpnmaker .vpnmaker and /etc/vpnmaker | maybe vpnmakerrc
+module VPNMaker
+  module CLI
+    class Options
+      # main DSL
+      Main do
+        version File.read(File.expand_path("../..", __FILE__) + "/VERSION")
+        author 'Copyleft(cl) VoipScout - No rights reserved'
+
+        mode('init') {
+          mode('cli') {
+            argument('country') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('province') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('city') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('organization') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('organization_unit') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('common_name') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('key_name') {
+              required
+              cast :string
+              arity 1
+            }
+            argument('email') {
+              required
+              cast :string
+              arity 1
+              validate {|e| e.email?}
+            }
+
+          } #mode 'cli'
+
+          argument('conf_name') {
+            required
+            cast :string
+            arity 1
+          }
+          argument('new_dir_path') {
+            required
+            cast :string
+            arity 1
+            validate {|dir| File.directory?(File.expand_path(dir))}
+          }
+
+          def run
+            get_init_config
+          end
+        }
+
+        mode('server') {
+          mode('build') {
+            def run
+              db.build_server
+              say('Please edit your config.yaml if you haven\'t done so yet')
+            end
+          }
+          mode('config') {
+            def run
+              puts db.config_generator.server
+            end
+          }
+          mode('install') {
+            description "this will make /etc/openvpn/[your server].ovpn.conf and crl.pem and some files to make NAT work, look into basedir"
+            def run
+              #FIXME: This needs to be cleaned up
+              iptables_nat_rules = <<EOS
+# nat Table rules
+*nat
+:POSTROUTING ACCEPT [0:0]
+# Forward traffic through ppp0 - Change to match you out-interface
+-A POSTROUTING -s #{db.tracker.config[:server][:base_ip]} -o eth0 -j MASQUERADE
+# don't delete the 'COMMIT' line or these nat table rules won't
+# be processed
+COMMIT
+EOS
+              etc_default_ufw = File.read('/etc/default/ufw').gsub('DEFAULT_FORWARD_POLICY="DROP"', 'DEFAULT_FORWARD_POLICY="ACCEPT"')
+              etc_ufw_sysctl_conf = File.read('/etc/ufw/sysctl.conf').gsub('#net/ipv4/ip_forward=1', 'net/ipv4/ip_forward=1')
+              etc_ufw_before_rules = `sudo cat /etc/ufw/before.rules`.insert(0, iptables_nat_rules)
+              cfg = db.config_generator.server
+              fname = db.tracker.path + "/" + Manager.vpn_name(db.tracker.path) + "_server.conf"
+              File.open(fname ,'w') {|f| f.write(cfg)}
+              File.open("#{db.tracker.path}/ufw", 'w') {|f| f.write(etc_default_ufw)}
+              File.open("#{db.tracker.path}/sysctl.conf", 'w') {|f| f.write(etc_ufw_sysctl_conf)}
+              File.open("#{db.tracker.path}/before.rules", 'w') {|f| f.write(etc_ufw_before_rules)}
+
+              `sudo cp #{fname} /etc/openvpn`
+              `sudo cp #{db.tracker.path}/#{Manager.vpn_name(db.tracker.path)}_data/crl.pem /etc/openvpn`
+
+              msg = <<EOS
+sudo cp #{db.tracker.path}/ufw /etc/default/ufw
+sudo cp #{db.tracker.path}/sysctl.conf /etc/ufw/sysctl.conf
+sudo cp #{db.tracker.path}/before.rules /etc/ufw/before.rules
+EOS
+              say('Please check those files before copy/pasting!')
+              say msg
+            end
+          }
+          keyword('dir') {
+            required
+            arity 1
+            cast :string
+            description "ie. /my/config/vpnmaker.vpn"
+            validate {|dir_name| File.directory?(File.expand_path(dir_name))}
+          }
+
+          argument('server_config_name') {
+            description "filename to save server configuration to"
+            argument :optional
+            cast :string
+            arity -1
+            #TODO: highline, how to not crlf after #agree
+            validate {|fname| File.exist?(fname) ? agree("file exists, overwrite?") : true }
+          }
+          def run
+            puts "server run..."
+            puts "need to save fname=#{params['server_config_fname'].value}" if params['server_config_fname'].given?
+          end
+        }
+
+        mode('client') {
+
+          mode('list') {
+            description "ie. vpnmaker clients list"
+            def run
+              pp db.users.select {|u| !db.user(u)[:revoked].include?(db.user(u)[:active_key])}
+              # db.users.each{|u| puts db.user(u)}
+            end
+          }
+
+          mode('config') {
+            def run
+              params['client_name'].values.each do |c|
+                puts db.config_generator.client(db.user(c))
+              end
+            end
+          }
+
+          mode('create') {
+            keyword('passwd') {
+              description "This is PKCS12 password, default is \"passwd\""
+              argument :optional
+              cast :string
+              arity 1
+              default 'passwd'
+            }
+
+            def run
+              params['client_name'].values.each_with_index do |c, i|
+                email = "#{c}@#{db.config[:key_properties][:email].split('@').last}"
+                passwd = params['passwd'].values[i]
+                (passwd ? db.create_user(c, c, email, passwd) : db.create_user(c, c, email)) if db.users.select {|r| r =~ /#{c}/}.empty?
+              end
+            end
+          }
+
+          mode('destroy') {
+            option('all') {
+              argument :optional
+              cast :bool
+            }
+            def run
+              if params['all'].value
+                db.users.each {|u| db.delete_user(u)} unless db.users.size == 0
+              else
+                params['client_name'].values.each do |c|
+                  db.delete_user(c) unless !db.user(c)
+                end
+              end
+            end
+          }
+
+          mode('regenerate') {
+            keyword('passwd') {
+              argument :optional
+              cast :string
+              arity 1
+              default 'passwd'
+            }
+
+            def run
+              params['client_name'].values.each_with_index do |c, i|
+                passwd = params['passwd'].values[i] ? params['passwd'].values[i] : params['passwd'].default
+                db.regenerate_user(c, passwd)
+              end
+            end
+          }
+
+          argument('client_name') {
+            argument :optional
+            arity -1
+            cast :string
+            #synopsis 'client_name'
+            description "username"
+            # validate {|name|   ? YAML.load_file(path) : {}}
+          }
+          # environment('VPNMAKER_DIR')
+          keyword('dir') {
+            required
+            arity 1
+            cast :string
+            description "ie. /my/config/vpnmaker.vpn"
+            validate {|dir_name| File.directory?(File.expand_path(dir_name))}
+          }
+
+          def run
+            puts "client run"
+          end
+
+        }
+
+        def db
+          VPNMaker::Manager.new params['dir'].value
+        end
+
+        def get_init_config
+          name = params['conf_name'].value
+          dir = params['new_dir_path'].value
+
+          VPNMaker.generate name, dir
+
+          data_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_data")
+          template_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_templates")
+          client_config_dir = (File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + "_client_configs")
+
+          [data_dir, template_dir, client_config_dir].each {|dir| FileUtils.mkdir_p(dir)}
+          lib_dir = File.dirname(File.expand_path __FILE__).gsub('/bin', '/lib')
+          FileUtils.cp Dir.glob(lib_dir + "/*.haml"), template_dir
+
+          if params['email'].given?
+            initial_config = {
+              :key_properties => {
+                :country => params['country'].value,
+                :province => params['province'].value,
+                :city => params['city'].value,
+                :organization => params['organization'].value,
+                :organization_unit => params['organization_unit'].value,
+                :common_name => params['common_name'].value,
+                :name => params['key_name'].value,
+                :email => params['email'].value
+              },
+              :site => {
+                :data_dir => data_dir.split('/').last,
+                :template_dir => template_dir.split('/').last,
+                :client_conf_dir => client_config_dir.split('/').last
+              }
+            }
+
+            example_config = YAML.load_file(lib_dir + "/example_vpnmaker_site.config.yaml").to_yaml.gsub(/\n|---/, "\n#")
+            File.open((File.expand_path(dir) + "/" + name + ".vpn" + "/" + name + ".config.yaml"), 'w') {|f| f.write(initial_config.to_yaml + example_config)}
+            mgr = VPNMaker::Manager.new((File.expand_path(dir) + "/" + name + ".vpn"))
+            mgr.build_ca
+            say("Please edit files in #{template_dir} and #{dir}/#{name}.vpn/#{name}.config.yaml before proceeding further")
+          else
+            say('Time to mod yaml files')
+          end
+        end
+
+      end # Main {}
+    end #class Options
+  end #module CLI
+end #module VPNMaker
+
+VPNMaker::CLI::Options.new
