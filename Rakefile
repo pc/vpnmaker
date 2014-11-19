@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'rubygems'
 require 'bundler'
+
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
@@ -9,6 +10,29 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 require 'rake'
+require "rspec/core/rake_task"
+
+RSpec::Core::RakeTask.new
+
+task :test => :spec
+
+task :console do
+  begin
+    # use Pry if it exists
+    require 'pry'
+    require 'vpnmaker'
+    Pry.start
+  rescue LoadError
+    require 'irb'
+    require 'irb/completion'
+    require 'vpnmaker'
+    ARGV.clear
+    IRB.start
+  end
+end
+
+task :c => :console
+
 
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
@@ -34,3 +58,4 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+

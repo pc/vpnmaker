@@ -5,20 +5,26 @@ module VPNMaker
     attr_reader :config
     attr_reader :path
 
+    def initialize(name, dir)
+      @path = dir
+      @db = KeyDB.new(File.join(dir, name + '.db.yaml'))
+      @config = KeyConfig.new(File.join(dir, name + '.config.yaml'))
+      @builder = KeyBuilder.new(self, @config)
+    end
+
     def self.generate(name, path=nil)
       path ||= '/tmp'
       dir = File.join(File.expand_path(path), name + '.vpn')
 
       FileUtils.mkdir_p(dir)
-      datadir = "#{name}_data"
       dbpath = File.join(dir, "#{name}.db.yaml")
 
-      d = KeyDB.new(dbpath)
-      d[:version] = 0
-      d[:modified] = Time.now
-      d[:users] = {}
-      d[:datadir] = datadir
-      d.sync
+      db = KeyDB.new(dbpath)
+      db[:version] = 0
+      db[:modified] = Time.now
+      db[:users] = {}
+      db[:datadir] = "data"
+      db.sync
     end
 
     def assert_user(user)
@@ -145,13 +151,6 @@ module VPNMaker
     end
 
     def users; @db[:users]; end
-
-    def initialize(name, dir)
-      @path = dir
-      @db = KeyDB.new(File.join(dir, name + '.db.yaml'))
-      @config = KeyConfig.new(File.join(dir, name + '.config.yaml'))
-      @builder = KeyBuilder.new(self, @config)
-    end
   end
 
   def self.generate(name, path)

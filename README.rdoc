@@ -97,3 +97,7 @@ Which will output a config file that you can copy and paste into <tt>openvpn.con
 === OpenVPN client
 
 Each client will need: <tt>user.key</tt>, <tt>user.crt</tt>, <tt>ca.crt</tt> and <tt>ta.key</tt>. Make sure to enable tls-auth = 1.
+
+== Testing
+
+Tests are done with Rspec.  To run the tests simply run `bundle exec rake test` or `bundle exec rake spec`.

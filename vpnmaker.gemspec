@@ -4,46 +4,22 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
+  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+
   s.name = "vpnmaker"
   s.version = "1.0.11"
-
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Voip Scout"]
+  s.authors = ["Voip Scout", "Robert McLeod"]
+  s.email = "voipscout@gmail.com"  
   s.date = "2012-05-12"
   s.description = "haml templates and key tracking"
-  s.email = "voipscout@gmail.com"
-  s.executables = ["vpnmaker"]
-  s.extra_rdoc_files = [
-    "README.rdoc"
-  ]
-  s.files = [
-    ".document",
-    "Gemfile",
-    "README.rdoc",
-    "Rakefile",
-    "VERSION",
-    "bin/vpnmaker",
-    "lib/client.haml",
-    "lib/datastore.rb",
-    "lib/datastore/ca.rb",
-    "lib/datastore/user.rb",
-    "lib/example_vpnmaker_site.config.yaml",
-    "lib/openssl.haml",
-    "lib/server.haml",
-    "lib/vpnmaker.rb",
-    "lib/vpnmaker/config_generator.rb",
-    "lib/vpnmaker/key_builder.rb",
-    "lib/vpnmaker/key_config.rb",
-    "lib/vpnmaker/key_db.rb",
-    "lib/vpnmaker/key_tracker.rb",
-    "lib/vpnmaker/manager.rb",
-    "vpnmaker.gemspec"
-  ]
+  s.summary = "Makes it easy to manage OpenVPN"
   s.homepage = "http://github.com/voipscout/vpnmaker"
   s.licenses = ["MIT"]
+
+  s.executables = ["vpnmaker"]
+  s.extra_rdoc_files = ["README.rdoc"]
+  s.files = `git ls-files`.split($/)
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.24"
-  s.summary = "Makes it easy to manage OpenVPN"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3

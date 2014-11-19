@@ -1,7 +1,7 @@
 module VPNMaker
   class KeyBuilder
     def initialize(tracker, config)
-      @tmpdir = '/tmp/keybuilder'
+      @tmpdir = File.join tracker.path, "tmp"
       clean_tmpdir
       @tracker = tracker
       @config = config
@@ -12,7 +12,7 @@ module VPNMaker
       FileUtils.mkdir_p(@tmpdir)
     end
 
-    def cnfpath; "/tmp/openssl-#{$$}.cnf"; end
+    def cnfpath; File.join @tmpdir, "openssl-#{$$}.cnf"; end
 
     def opensslvars
       {
@@ -38,8 +38,12 @@ module VPNMaker
     def opensslcnf(hash={})
       c = cnfpath
 
+      template = File.read(VPNMaker.template_path('openssl.haml'))
+      haml = Haml::Engine.new(template)
+      config = haml.render(Object.new, opensslvars.merge(hash))
+
       File.open(cnfpath, 'w') do |f|
-        f.write(Haml::Engine.new(File.read(@tracker.path + "/" + @config[:site][:template_dir] + "/" + 'openssl.haml')).render(Object.new, opensslvars.merge(hash)))
+        f.write(config)
       end
 
       c
@@ -48,6 +52,9 @@ module VPNMaker
     # Build Diffie-Hellman parameters for the server side of an SSL/TLS connection.
     def build_dh_key(keysize=1024)
       `openssl dhparam -out #{tmppath('dh.pem')} #{keysize}`
+
+      raise BuildError, "DH key was empty" if tmpfile('dh.pem').empty?
+
       @tracker.set_dh(tmpfile('dh.pem'))
     end
 
@@ -57,6 +64,8 @@ module VPNMaker
 
     def gen_crl
       `openssl ca -gencrl -crldays 3650 -keyfile #{tmppath('ca.key')} -cert #{tmppath('ca.crt')} -out #{tmppath('crl.pem')} -config #{opensslcnf}`
+      
+      raise BuildError, "CRL was empty" if tmpfile('crl.pem').empty?
     end
 
     def build_ca
@@ -65,7 +74,12 @@ module VPNMaker
       FileUtils.touch(index)
 
       `openssl req -batch -days 3650 -nodes -new -x509 -keyout #{@tmpdir}/ca.key -out #{@tmpdir}/ca.crt -config #{opensslcnf}`
+
       gen_crl
+
+      raise BuildError, "CA certificate was empty" if tmpfile('ca.crt').empty?
+      raise BuildError, "CA key was empty" if tmpfile('ca.key').empty?
+
       @tracker.set_ca(tmpfile('ca.key'), tmpfile('ca.crt'), tmpfile('crl.pem'), tmpfile('index.txt'), "01\n")
     end
 
@@ -76,7 +90,10 @@ module VPNMaker
       place_file('serial')
 
       `openssl req -batch -days 3650 -nodes -new -keyout #{tmppath('server.key')} -out #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
-      `openssl ca -batch -days 3650 -out #{tmppath('server.crt')} -in #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
+      `openssl req -batch -days 3650 -out #{tmppath('server.crt')} -in #{tmppath('server.csr')} -extensions server -config #{opensslcnf}`
+
+      raise BuildError, "Server certificate was empty" if tmpfile('server.crt').empty?
+      raise BuildError, "Server key was empty" if tmpfile('server.key').empty?
 
       @tracker.set_server_key(tmpfile('server.key'), tmpfile('server.crt'), tmpfile('index.txt'), tmpfile('serial'))
     end
